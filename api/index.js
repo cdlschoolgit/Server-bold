@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const Student = require('../models/Student');
 
 // Load environment variables
 dotenv.config();
@@ -21,19 +22,20 @@ mongoose.connect(process.env.DB_URI, {
   console.error('MongoDB connection error:', error);
 });
 
-// Define a route to check if the database is connected
-app.get('/api/dbstatus', (req, res) => {
-  if (mongoose.connection.readyState === 1) {
-    // Ready state 1 indicates connected
-    res.status(200).json({ status: 'Database connected' });
-  } else {
-    res.status(500).json({ status: 'Database connection failed' });
-  }
-});
+// Define a route to fetch a student by _id
+app.get('/api/students/:id', async (req, res) => {
+  const studentId = req.params.id;
 
-// Define a simple health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'API is running' });
+  try {
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    res.status(200).json(student);
+  } catch (error) {
+    console.error('Error fetching student:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Start the server
