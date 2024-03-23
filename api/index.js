@@ -2,14 +2,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Student = require('./models/Student');
+const Student = require('../models/Student');
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
-
 
 
 // Define a route to fetch a student by _id
