@@ -6,6 +6,9 @@ const router = require('../router');
 const connectDatabse = require('../db/connection');
 const logger = require('../utils/logger');
 connectDatabse();
+router.get("/api",(req,res)=>{
+  res.send("this is working")
+})
 router.get('/api/students/count', async (req, res) => {
   try {
     const year = req.query.year; // Get the year from the query parameter
