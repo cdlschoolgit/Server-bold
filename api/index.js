@@ -10,7 +10,15 @@ dotenv.config();
 
 const app = new express();
 const errorMiddleware = require('../middlewares/errors');
-app.use(cors());
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
 
 const studentRoutes = require('../routes/Student');
 const teacherRoutes = require('../routes/Teacher');
