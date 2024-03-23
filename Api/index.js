@@ -12,7 +12,7 @@ router.get('/api/students/count', async (req, res) => {
     const startDate = new Date(`${year}-01-01`);
     const endDate = new Date(`${year}-12-31`);
 
-    // Count the number of students registered in the specified year
+    // Count the number of students registered in specified year
     const registeredCount = await Student.countDocuments({
       createAt: { $gte: startDate, $lte: endDate }
     });
