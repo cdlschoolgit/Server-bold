@@ -93,16 +93,7 @@ router.get('/api/students/timestamps', async (req, res) => {
   }
 });
 
-const server = router.listen(process.env.PORT, () => {
-  console.clear();
-  logger.info(`Server is port ${process.env.PORT} in ${process.env.NODE_ENV}`);
-  logger.info(`http://localhost:${process.env.PORT}/`);
-});
-
-process.on('unhandledRejection', (err) => {
-  logger.error(`Error name : ${err.name} , Error msg ${err.message}  `);
-  logger.error('Shutting down Server due to  Rejection Errors');
-  server.close(() => {
-    process.exit();
-  });
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
