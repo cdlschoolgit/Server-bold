@@ -5,7 +5,7 @@ const router = require('../router');
 const connectDatabse = require('../db/connection');
 const logger = require('../utils/logger');
 const mongoose = require('mongoose');
-mongoose.connect(process.env.DB_URI, {
+mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
