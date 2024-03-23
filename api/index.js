@@ -1,33 +1,81 @@
-// server.js
-const express = require('express');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Student = require('../models/Student');
+dotenv.config({ path: '../config/config.env' });
+const Student = require("../models/Student");
 
-// Load environment variables
-dotenv.config();
-
-// Create Express app
-const app = express();
-
-
-// Define a route to fetch a student by _id
-app.get('/api/students/:id', async (req, res) => {
-  const studentId = req.params.id;
-
+const app = require('../router');
+app.get('/api/students/count', async (req, res) => {
   try {
-    const student = await Student.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-    res.status(200).json(student);
+    const year = req.query.year; // Get the year from the query parameter
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
+
+    // Count the number of students registered in specified year
+    const registeredCount = await Student.countDocuments({
+      createAt: { $gte: startDate, $lte: endDate }
+    });
+
+    // Count the number of active students in the specified year
+    const activeCount = await Student.countDocuments({
+      createAt: { $gte: startDate, $lte: endDate },
+      active: true
+    });
+
+    // Count the number of completed students in the specified year
+    const completedCount = await Student.countDocuments({
+      createAt: { $gte: startDate, $lte: endDate },
+      completed: true
+    });
+
+    // Return the counts as JSON response
+    res.json({
+      year,
+      totalRegistered: registeredCount,
+      active:activeCount,
+      completed: completedCount,
+    });
   } catch (error) {
-    console.error('Error fetching student:', error);
+    console.error('Error fetching student counts:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.get('/api/students/timestamps', async (req, res) => {
+  try {
+    // Extract the year from the query parameter
+    const { year } = req.query;
 
-// Start the server
+    // Check if the year is provided
+    if (!year) {
+      return res.status(400).json({ success: false, error: 'Year parameter is required' });
+    }
+
+    // Parse the year to a number
+    const parsedYear = parseInt(year);
+
+    // Check if the year is valid
+    if (isNaN(parsedYear)) {
+      return res.status(400).json({ success: false, error: 'Invalid year parameter' });
+    }
+
+    // Get the start and end date of the provided year
+    const startDate = new Date(parsedYear, 0, 1); // January 1st of the year
+    const endDate = new Date(parsedYear + 1, 0, 1); // January 1st of the next year
+
+    // Query the database to find students registered within the specified year
+    const students = await Student.find({
+      createAt: { $gte: startDate, $lt: endDate }
+    }, 'createAt');
+
+    // Extract the createAt timestamps from the result
+    const timestamps = students.map(student => ({ createAt: student.createAt }));
+
+    // Send the timestamps as a response
+    res.json({ success: true, data: timestamps });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 
 mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment").then(() => {
   console.log("db  is running on port 3003 ")
