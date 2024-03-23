@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = new express();
 const errorMiddleware = require('../middlewares/errors');
-router.use(cors());
+app.use(cors());
 
 const studentRoutes = require('../routes/Student');
 const teacherRoutes = require('../routes/Teacher');
