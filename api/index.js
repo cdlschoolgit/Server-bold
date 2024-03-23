@@ -5,7 +5,16 @@ const router = require('../router');
 const connectDatabse = require('../db/connection');
 const logger = require('../utils/logger');
 const mongoose = require('mongoose');
-connectDatabse();
+mongoose.connect(process.env.DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('Connected to MongoDB');
+})
+.catch(error => {
+  console.error('MongoDB connection error:', error);
+});
 router.get("/api",(req,res)=>{
   res.send("this is working")
 })
