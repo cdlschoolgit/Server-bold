@@ -9,6 +9,14 @@ connectDatabse();
 router.get("/api",(req,res)=>{
   res.send("this is working")
 })
+router.get('/api/dbstatus', (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    // Ready state 1 indicates connected
+    res.status(200).json({ status: 'Database connected' });
+  } else {
+    res.status(500).json({ status: 'Database connection failed' });
+  }
+});
 router.get('/api/students/count', async (req, res) => {
   try {
     const year = req.query.year; // Get the year from the query parameter
