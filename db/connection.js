@@ -2,14 +2,8 @@ const logger = require('../utils/logger');
 const mongoose = require('mongoose');
 
 const connectDatabase = () => {
-  const dbUri = "mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment";
-  if (!dbUri) {
-    logger.error('MongoDB connection URI is missing. Check the DB_URI environment variable.');
-    return;
-  }
-
   mongoose
-    .connect(dbUri, {
+    .connect(process.env.DB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
