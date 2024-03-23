@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "App.js",
+  "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.216.0",
     "@aws-sdk/s3-request-presigner": "^3.216.0",
@@ -28,7 +28,7 @@
     "prettier": "^3.0.2"
   },
   "scripts": {
-    "start": "set NODE_ENV=DEVELOPMENT& node ./App",
+    "start": "node index.js",
     "dev": "set NODE_ENV=DEVELOPMENT& nodemon ./App",
     "prod": "set NODE_ENV=PRODUCTION& nodemon ./App",
     "seeder": "set NODE_ENV=PRODUCTION& node ./utils/seeder.js"
