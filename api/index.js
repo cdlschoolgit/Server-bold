@@ -10,17 +10,6 @@ dotenv.config();
 // Create Express app
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect(process.env.DB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch(error => {
-  console.error('MongoDB connection error:', error);
-});
 
 // Define a route to fetch a student by _id
 app.get('/api/students/:id', async (req, res) => {
@@ -39,7 +28,11 @@ app.get('/api/students/:id', async (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+
+mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment").then(() => {
+  console.log("db  is running on port 3003 ")
+  app.listen(3003, () => {
+    console.log("db and server is running on port 3003 ")
+  })
 });
+
