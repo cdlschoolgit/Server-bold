@@ -1,10 +1,10 @@
 const dotenv = require('dotenv');
 dotenv.config({ path: '../config/config.env' });
 const Student = require("../models/Student");
-
 const router = require('../router');
 const connectDatabse = require('../db/connection');
 const logger = require('../utils/logger');
+const mongoose = require('mongoose');
 connectDatabse();
 router.get("/api",(req,res)=>{
   res.send("this is working")
