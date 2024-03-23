@@ -4,13 +4,15 @@ const mongoose = require('mongoose');
 const connectDatabase = () => {
   mongoose
     .connect(process.env.DB_URI, {
-      // dbName: "Traffic-Assessment",
       useNewUrlParser: true,
-      // useUnifiedTopology: true,
+      useUnifiedTopology: true,
     })
     .then((con) => {
-      logger.info(`Database is connected on ${con.connection.host}`);
+      logger.info(`Database connected on ${con.connection.host}`);
     })
-    .catch((e) => logger.error(e));
+    .catch((error) => {
+      logger.error('Error connecting to the database:', error);
+    });
 };
+
 module.exports = connectDatabase;
