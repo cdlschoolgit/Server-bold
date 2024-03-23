@@ -9,6 +9,17 @@ connectDatabse();
 router.get("/api",(req,res)=>{
   res.send("this is working")
 })
+
+// API endpoint to fetch the number of documents in the Student collection
+router.get('/api/stu', async (req, res) => {
+  try {
+    const count = await Student.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error fetching student count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 router.get('/api/students/count', async (req, res) => {
   try {
     const year = req.query.year; // Get the year from the query parameter
