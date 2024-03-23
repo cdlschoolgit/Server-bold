@@ -2,7 +2,8 @@ const dotenv = require('dotenv');
 dotenv.config({ path: '../config/config.env' });
 const Student = require("../models/Student");
 
-const app = require('../router');
+const app = express();
+
 app.get('/api/students/count', async (req, res) => {
   try {
     const year = req.query.year; // Get the year from the query parameter
