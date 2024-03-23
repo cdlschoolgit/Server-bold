@@ -68,76 +68,76 @@ const router = express.Router();
 
 // ---------------- Functions ----------------
 
-router.route('/createAdmin').post(createTeacher);
-router.route('/loginAdmin').post(loginTeacher);
-router.route('/deleteAdmins').delete(deleteAllTeacherAccount);
-router.route('/getAdmins').get(getAllTeachers);
-router.route('/AdminDetails/:id').get(getMyInfo);
+router.route('/api/createAdmin').post(createTeacher);
+router.route('/api/loginAdmin').post(loginTeacher);
+router.route('/api/deleteAdmins').delete(deleteAllTeacherAccount);
+router.route('/api/getAdmins').get(getAllTeachers);
+router.route('/api/AdminDetails/:id').get(getMyInfo);
 
 // -------------- Changing Student Status
-router.route('/makeStudentActive').post(makeStudentActive);
-router.route('/makeStudentInActive').post(makeStudentInActive);
-router.route('/getBasicInfoById/:id').get(getStudentById);
-router.route('/changePasswordByAdmin').post(changePasswordByAdmin);
-router.route('/forcedComplete').post(forcedCompleteByAdmin);
+router.route('/api/makeStudentActive').post(makeStudentActive);
+router.route('/api/makeStudentInActive').post(makeStudentInActive);
+router.route('/api/getBasicInfoById/:id').get(getStudentById);
+router.route('/api/changePasswordByAdmin').post(changePasswordByAdmin);
+router.route('/api/forcedComplete').post(forcedCompleteByAdmin);
 
-router.route('/correctResults').post(makeResultsCorrectByDetails);
-router.route('/correctResultsById').post(makeResultsCorrectById);
+router.route('/api/correctResults').post(makeResultsCorrectByDetails);
+router.route('/api/correctResultsById').post(makeResultsCorrectById);
 
-router.route('/deleteStudent').post(deleteMyAccountByAdmin);
-router.route('/deleteStudentByAdmin').post(forcedDeleteByAdmin);
+router.route('/api/deleteStudent').post(deleteMyAccountByAdmin);
+router.route('/api/deleteStudentByAdmin').post(forcedDeleteByAdmin);
 
-router.route('/changeStudentNameByAdmin').post(changeStudentName);
-router.route('/makeAdminActive').post(makeAdminActive);
-router.route('/makeAdminInActive').post(makeAdminInActive);
-router.route('/manageResult').get(manageResultsAndMarks);
-router.route('/getStudentStatsByMonths').post(getStudentStatsByMonths);
-router.route('/getStudentStatsByYear').post();
-router.route('/getCurrentStats').post(getStudentCurrentStatistics);
+router.route('/api/changeStudentNameByAdmin').post(changeStudentName);
+router.route('/api/makeAdminActive').post(makeAdminActive);
+router.route('/api/makeAdminInActive').post(makeAdminInActive);
+router.route('/api/manageResult').get(manageResultsAndMarks);
+router.route('/api/getStudentStatsByMonths').post(getStudentStatsByMonths);
+router.route('/api/getStudentStatsByYear').post();
+router.route('/api/getCurrentStats').post(getStudentCurrentStatistics);
 
-router.route('/getStudentByTerm/:term').get(getStudentByTerm);
-router.route('/blockStudent').post(blockStudent);
-router.route('/unBlockStudent').post(unBlockStudent);
-router.route('/markCompleteStudent').post(markCompleteStudent);
-router.route('/markInComplete').post(markIncompleteStudent);
+router.route('/api/getStudentByTerm/:term').get(getStudentByTerm);
+router.route('/api/blockStudent').post(blockStudent);
+router.route('/api/unBlockStudent').post(unBlockStudent);
+router.route('/api/markCompleteStudent').post(markCompleteStudent);
+router.route('/api/markInComplete').post(markIncompleteStudent);
 
-router.route('/markVerified').post(markVerifiedStudent);
-router.route('/removeDuplicate').post(removeDuplicateFromResults);
+router.route('/api/markVerified').post(markVerifiedStudent);
+router.route('/api/removeDuplicate').post(removeDuplicateFromResults);
 
 // --------------- Form Handling ----------------------
 
-router.route('/approveForm').post(checkForm);
+router.route('/api/approveForm').post(checkForm);
 
-router.route('/approveAgreement').post(approveAgreement);
-router.route('/rejectAgreement').post(rejectAgreement);
+router.route('/api/approveAgreement').post(approveAgreement);
+router.route('/api/rejectAgreement').post(rejectAgreement);
 
-router.route('/rejectDataCollection').post(rejectDataCollection);
-router.route('/approveDataCollection').post(approveDataCollection);
+router.route('/api/rejectDataCollection').post(rejectDataCollection);
+router.route('/api/approveDataCollection').post(approveDataCollection);
 
-router.route('/enrollments').post(getApplicationsAll);
+router.route('/api/enrollments').post(getApplicationsAll);
 
-router.route('/agreement').post(allAgreements);
+router.route('/api/agreement').post(allAgreements);
 
-router.route('/forms').get(getAllForms);
+router.route('/api/forms').get(getAllForms);
 
-router.route('/forms/term/:term').get(getAllFormsByTerm);
+router.route('/api/forms/term/:term').get(getAllFormsByTerm);
 
-router.route('/forms/:studentId').get(getFormDataByStudentId);
+router.route('/api/forms/:studentId').get(getFormDataByStudentId);
 
-router.route('/editForm').post(editForm);
+router.route('/api/editForm').post(editForm);
 
-router.route('/dataCollected').post(allDataCollected);
+router.route('/api/dataCollected').post(allDataCollected);
 
-router.route('/moduleResultSuper').post(getStudentsResultsModuleOnly);
+router.route('/api/moduleResultSuper').post(getStudentsResultsModuleOnly);
 
-router.route('/deleteModuleResultSuper').post(deleteStudentModuleResult);
+router.route('/api/deleteModuleResultSuper').post(deleteStudentModuleResult);
 
 router
-  .route('/rejectApplicationForEnrollment')
+  .route('/api/rejectApplicationForEnrollment')
   .post(rejectApplicationForEnrollment);
 
 router
-  .route('/approveApplicationForEnrollment')
+  .route('/api/approveApplicationForEnrollment')
   .post(approveApplicationForEnrollment);
 
 // ---------------- Requests

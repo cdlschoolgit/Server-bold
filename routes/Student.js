@@ -59,60 +59,60 @@ const upload = multer({ storage: storage });
 // ---------------- Functions
 
 router
-  .route('/updateTheIdOfStudentInModules')
+  .route('/api/updateTheIdOfStudentInModules')
   .get(updateTheIdOfStudentInModules);
 
 router
-  .route('/getAllModulesByStudentId/:studentId')
+  .route('/api/getAllModulesByStudentId/:studentId')
   .get(getAllChaptersByStudentId);
 router
-  .route('/getChapterByStudentId/:studentId/:chapterNo')
+  .route('/api/getChapterByStudentId/:studentId/:chapterNo')
   .get(getChapterByStudentId);
 
-router.route('/getAllModules').get(getAllChapters);
-router.route('/getModule/:chapterId').get(getChapter);
-router.route('/getQuestionsByModule/:chapterId').get(getChapterQuestion);
-router.route('/getMyResults/:studentId').get(getResultsOfChapterOfStudent);
+router.route('/api/getAllModules').get(getAllChapters);
+router.route('/api/getModule/:chapterId').get(getChapter);
+router.route('/api/getQuestionsByModule/:chapterId').get(getChapterQuestion);
+router.route('/api/getMyResults/:studentId').get(getResultsOfChapterOfStudent);
 router
-  .route('/getMyResultsChapter/:studentId')
+  .route('/api/getMyResultsChapter/:studentId')
   .get(getResultsOfChapterOfStudentUpdated);
 
-router.route('/loginStudent').post(loginStudent);
-router.route('/createStudent').post(createStudent);
-router.route('/getAllStudents').get(getStudents);
-router.route('/getMyInfo/:id').get(getMyInfo);
-router.route('/verifyStudent').get(activateStudent);
+router.route('/api/loginStudent').post(loginStudent);
+router.route('/api/createStudent').post(createStudent);
+router.route('/api/getAllStudents').get(getStudents);
+router.route('/api/getMyInfo/:id').get(getMyInfo);
+router.route('/api/verifyStudent').get(activateStudent);
 
 router
-  .route('/makeApplicationForEnrollment')
+  .route('/api/makeApplicationForEnrollment')
   .post(makeApplicationForEnrollment);
-router.route('/makeAgreement').post(makeAgreement);
-router.route('/makeDataCollection').post(makeDataCollection);
+router.route('/api/makeAgreement').post(makeAgreement);
+router.route('/api/makeDataCollection').post(makeDataCollection);
 
-router.route('/makeForm').post(makeFormData);
+router.route('/api/makeForm').post(makeFormData);
 
-router.route('/resetPassword').post(generateNumbers);
-router.route('/checkNumber').post(checkNumbers);
-router.route('/changePassword').post(changePassword);
+router.route('/api/resetPassword').post(generateNumbers);
+router.route('/api/checkNumber').post(checkNumbers);
+router.route('/api/changePassword').post(changePassword);
 
-router.route('/videoUpdate').post(videoUpdate);
-router.route('/attempQuiz').post(attempQuiz);
-router.route('/getAlldetails').get(getStudentsAggregate);
-router.route('/getAlldetailsByTerm/:term').get(getStudentsAggregateByTerm);
+router.route('/api/videoUpdate').post(videoUpdate);
+router.route('/api/attempQuiz').post(attempQuiz);
+router.route('/api/getAlldetails').get(getStudentsAggregate);
+router.route('/api/getAlldetailsByTerm/:term').get(getStudentsAggregateByTerm);
 
-router.route('/getAgreementByEmail/:email').get(getAgreementByEmail);
-router.route('/getFormByStudent/:studentId').get(getFormDataByStudentId);
+router.route('/api/getAgreementByEmail/:email').get(getAgreementByEmail);
+router.route('/api/getFormByStudent/:studentId').get(getFormDataByStudentId);
 
 router
-  .route('/getApplicationEnrollmentByEmail/:email')
+  .route('/api/getApplicationEnrollmentByEmail/:email')
   .get(getApplicationForEnrollmentByEmail);
 
-router.route('/getDataCollectionByEmail/:email').get(getDataCollectionByEmail);
-router.route('/getBasicInfo/:email').get(getBasicInfo);
+router.route('/api/getDataCollectionByEmail/:email').get(getDataCollectionByEmail);
+router.route('/api/getBasicInfo/:email').get(getBasicInfo);
 
-router.route('/uploadDocs').post(upload.any('docs'), uploadFiles);
+router.route('/api/uploadDocs').post(upload.any('docs'), uploadFiles);
 
-router.route('/').all((req, res) => {
+router.route('/api/').all((req, res) => {
   res.status(200).json({
     message: `Traffic  Server Is Running 🚀🚀 ${process.env.NODE_ENV}`,
   });

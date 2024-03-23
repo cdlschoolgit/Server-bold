@@ -3,13 +3,27 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Student = require('../models/Student');
-
+const cors = require('cors');
+const path = require('path');
 // Load environment variables
 dotenv.config();
 
-// Create Express app
-const app = express();
+const app = new express();
+const errorMiddleware = require('../middlewares/errors');
+router.use(cors());
 
+const studentRoutes = require('../routes/Student');
+const teacherRoutes = require('../routes/Teacher');
+app.use(express.json());
+
+app.use(studentRoutes);
+app.use(teacherRoutes);
+
+app.use(errorMiddleware);
+
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/students/count', async (req, res) => {
   try {
     const year = req.query.year; // Get the year from the query parameter
