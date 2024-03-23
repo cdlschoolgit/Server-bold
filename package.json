@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "App.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.216.0",
+    "@aws-sdk/s3-request-presigner": "^3.216.0",
+    "bcrypt": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.1",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "hbs": "^4.2.0",
+    "mongoose": "^6.8.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.8.0",
+    "nodemailer-express-handlebars": "^5.0.0",
+    "pino": "^8.7.0",
+    "pino-pretty": "^9.1.1",
+    "pino-tee": "^0.3.0",
+    "sharp": "^0.31.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.47.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^3.0.2"
+  },
+  "scripts": {
+    "start": "set NODE_ENV=DEVELOPMENT& node ./App",
+    "dev": "set NODE_ENV=DEVELOPMENT& nodemon ./App",
+    "prod": "set NODE_ENV=PRODUCTION& nodemon ./App",
+    "seeder": "set NODE_ENV=PRODUCTION& node ./utils/seeder.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
