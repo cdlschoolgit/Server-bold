@@ -3,7 +3,7 @@ dotenv.config({ path: '../config/config.env' });
 const Student = require("../models/Student");
 
 const router = require('../router');
-const connectDatabse = require('./db/connection');
+const connectDatabse = require('../db/connection');
 const logger = require('../utils/logger');
 connectDatabse();
 router.get('/api/students/count', async (req, res) => {
