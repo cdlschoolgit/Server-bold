@@ -67,6 +67,7 @@ app.get('/api/students/count', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 app.get('/api/students/timestamps', async (req, res) => {
   try {
     // Extract the year from the query parameter
@@ -124,6 +125,7 @@ app.get('/api/students/:id', async (req, res) => {
 app.get("/api/",(req,res)=>{
   res.send("working")
 })
+
 // Set the strictQuery option to suppress the deprecation warning
 mongoose.set('strictQuery', false);
 
