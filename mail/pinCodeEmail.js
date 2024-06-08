@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 const hbs = require('nodemailer-express-handlebars');
-require('dotenv').config(); // Ensure you have a .env file with your environment variables
 
 const handlebarOptions = {
   viewEngine: {
@@ -17,15 +16,15 @@ const notifyEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.SMTP_FROM_EMAIL, // Your email address from environment variable
-      pass: process.env.SMTP_PASSWORD, // Your email password from environment variable
+      user: "support@unitedeldt.com", // Directly hardcoded email address
+      pass: "pmtqljxhfftauxx", // Directly hardcoded email password
     },
   });
 
   transporter.use('compile', hbs(handlebarOptions));
 
   const message = {
-    from: `"United-CDL-School" <${process.env.SMTP_FROM_EMAIL}>`, 
+    from: `"United-CDL-School" <support@unitedeldt.com>`, 
     to: options.email,
     subject: options.subject,
     template: 'pinCode',
