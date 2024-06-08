@@ -17,15 +17,15 @@ const notifyEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
+      user: "support@unitedeldt.com",
+      pass: "pmtq ljxh ffta uxx",
     },
   });
 
   transporter.use('compile', hbs(handlebarOptions));
 
   const message = {
-    from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`,
+    from: `"United-CDL-School" <support@unitedeldt.com>`, 
     to: options.email,
     subject: options.subject,
     template: 'pinCode',
