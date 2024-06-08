@@ -92,7 +92,6 @@ router.route('/api/makeDataCollection').post(makeDataCollection);
 router.route('/api/makeForm').post(makeFormData);
 
 router.route('/api/resetPassword').post(generateNumbers);
-router.route('/api/checkNumber').post(checkNumbers);
 router.route('/api/changePassword').post(changePassword);
 
 router.route('/api/videoUpdate').post(videoUpdate);

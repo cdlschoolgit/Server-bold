@@ -78,7 +78,36 @@ router.get('/students/timestamps', async (req, res) => {
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
+const checkNumbersStudent = async ({ email, code }) => {
+  const studentFound = await Student.findOne({ email, resetPasswordToken: code });
+  return !!studentFound;
+};
 
+// Define the POST endpoint
+router.post("/api/checkNumber", async(req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email and code are required',
+    });
+  }
+
+  const result = await checkNumbersStudent({ email, code });
+
+  if (result) {
+    return res.status(200).json({
+      success: true,
+      message: 'Code is verified, please change the password.',
+    });
+  } else {
+    return res.status(404).json({
+      success: false,
+      message: 'Code is incorrect.',
+    });
+  }
+});
 const server = router.listen(process.env.PORT, () => {
   console.clear();
   logger.info(`Server is port ${process.env.PORT} in ${process.env.NODE_ENV}`);
