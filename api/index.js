@@ -124,10 +124,18 @@ app.get('/api/students/:id', async (req, res) => {
 app.get("/api/",(req,res)=>{
   res.send("working")
 })
-mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment").then(() => {
-  console.log("db  is running on port 3003 ")
-  app.listen(3003, () => {
-    console.log("db and server is running on port 3003 ")
+// Set the strictQuery option to suppress the deprecation warning
+mongoose.set('strictQuery', false);
+
+// Connect to MongoDB
+mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment")
+  .then(() => {
+    console.log("db is running on port 3003");
+    app.listen(3003, () => {
+      console.log("db and server is running on port 3003");
+    });
   })
-});
+  .catch(err => {
+    console.error('Error connecting to MongoDB:', err);
+  });
 
