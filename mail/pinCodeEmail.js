@@ -16,9 +16,10 @@ const notifyEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: "support@unitedeldt.com", // Directly hardcoded email address
-      pass: "pmtq ljxh ffta uxx", // Directly hardcoded email password
+      user: 'login@unitedeldt.com',
+      pass: 'kqdh tfza wzzg jldm',
     },
+    debug: true,
   });
 
   transporter.use('compile', hbs(handlebarOptions));
