@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
-
-var hbs = require('nodemailer-express-handlebars');
+const hbs = require('nodemailer-express-handlebars');
+require('dotenv').config(); // Ensure you have a .env file with your environment variables
 
 const handlebarOptions = {
   viewEngine: {
@@ -17,15 +17,15 @@ const notifyEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: "support@unitedeldt.com",
-      pass: "pmtq ljxh ffta uxx",
+      user: process.env.SMTP_FROM_EMAIL, // Your email address from environment variable
+      pass: process.env.SMTP_PASSWORD, // Your email password from environment variable
     },
   });
 
   transporter.use('compile', hbs(handlebarOptions));
 
   const message = {
-    from: `"United-CDL-School" <support@unitedeldt.com>`, 
+    from: `"United-CDL-School" <${process.env.SMTP_FROM_EMAIL}>`, 
     to: options.email,
     subject: options.subject,
     template: 'pinCode',
@@ -36,8 +36,12 @@ const notifyEmail = async (options) => {
     },
   };
 
-  const mailSent = await transporter.sendMail(message);
-  console.log(mailSent);
+  try {
+    const mailSent = await transporter.sendMail(message);
+    console.log('Email sent:', mailSent);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
 };
 
 module.exports = notifyEmail;
