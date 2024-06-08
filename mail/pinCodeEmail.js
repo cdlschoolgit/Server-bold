@@ -17,7 +17,7 @@ const notifyEmail = async (options) => {
     service: 'gmail',
     auth: {
       user: "support@unitedeldt.com", // Directly hardcoded email address
-      pass: "pmtqljxhfftauxx", // Directly hardcoded email password
+      pass: "pmtq ljxh ffta uxx", // Directly hardcoded email password
     },
   });
 
