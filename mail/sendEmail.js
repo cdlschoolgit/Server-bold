@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
-
-var hbs = require('nodemailer-express-handlebars');
+const hbs = require('nodemailer-express-handlebars');
 
 const handlebarOptions = {
   viewEngine: {
@@ -26,7 +25,7 @@ const sendEmail = async (options) => {
   transporter.use('compile', hbs(handlebarOptions));
 
   const message = {
-    from: `"United-CDL-School" <support@unitedeldt.com>`, 
+    from: `"United-CDL-School" <support@unitedeldt.com>`,
     to: options.email,
     subject: options.subject,
     template: 'email',
@@ -37,8 +36,12 @@ const sendEmail = async (options) => {
     },
   };
 
-  const mailSent = await transporter.sendMail(message);
-  console.log(mailSent);
+  try {
+    const mailSent = await transporter.sendMail(message);
+    console.log('Email sent:', mailSent);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
 };
 
 module.exports = sendEmail;
