@@ -140,20 +140,20 @@ exports.activateStudent = catchAsyncErrors(async (req, res, next) => {
   const { token, email, name } = req.query;
   const result = await activateStudentByEmail(token, email, name);
   if (result === 'tokenExpired') {
-    res.redirect(`${process.env.FRONT_END_URL_PROD}/tokenExpired`);
+    res.redirect(`https://www.unitedcdleldt.com/tokenExpired`);
     // res.status(400).json({
     //   success: false,
     //   message: "Token Expired",
     // });
   } else if (result === 'approved') {
     // have to replace with redirect
-    res.redirect(`${process.env.FRONT_END_URL_PROD}/student/Login`);
+    res.redirect(`https://www.unitedcdleldt.com/student/Login`);
     // res.status(200).json({
     //   success: true,
     //   message: "Account has been Approved",
     // });
   } else {
-    res.redirect(`${process.env.FRONT_END_URL_PROD}/${email}`);
+    res.redirect(`https://www.unitedcdleldt.com/${email}`);
     // res.status(404).json({
     //   success: false,
     //   message: "User Not Found",
