@@ -279,6 +279,7 @@ const createStudentWithDetails = catchAsyncErrors(
       subject: 'Account Verification Through Email',
       verifyURL,
     });
+    console.log("sending email")
     studentCreated.save();
     return studentCreated;
   }
