@@ -138,6 +138,7 @@ exports.attempQuiz = catchAsyncErrors(async (req, res, next) => {
 });
 exports.activateStudent = catchAsyncErrors(async (req, res, next) => {
   const { token, email, name } = req.query;
+  console.log("verifying")
   const result = await activateStudentByEmail(token, email, name);
   if (result === 'tokenExpired') {
     res.redirect(`https://www.unitedcdleldt.com/tokenExpired`);
