@@ -272,7 +272,7 @@ const createStudentWithDetails = catchAsyncErrors(
     const resetToken = studentCreated.getResetPasswordToken();
 
     // const SERVER_URL = "https://traffic-assessment.herokuapp.com";
-    const verifyURL = `${process.env.BACKEND_END_URL_PROD}/verifyStudent/?token=${resetToken}&name=${name}&email=${email}`;
+    const verifyURL = `https://server-bold.vercel.app/verifyStudent/?token=${resetToken}&name=${name}&email=${email}`;
     sendEmail({
       userName: name,
       email: email,
