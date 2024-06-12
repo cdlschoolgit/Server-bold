@@ -24,6 +24,9 @@ const sendEmail = async (options) => {
 
   transporter.use('compile', hbs(handlebarOptions));
 
+  // Logging that the email sending process has started
+  console.log("Starting to send email...");
+
   const message = {
     from: `"United-CDL-School" <support@unitedeldt.com>`,
     to: options.email,
@@ -38,8 +41,10 @@ const sendEmail = async (options) => {
 
   try {
     const mailSent = await transporter.sendMail(message);
-    console.log('Email sent:', mailSent);
+    // Logging the success message with details
+    console.log('Email sent successfully:', mailSent);
   } catch (error) {
+    // Logging the error message if sending fails
     console.error('Error sending email:', error);
   }
 };
