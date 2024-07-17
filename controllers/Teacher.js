@@ -255,17 +255,24 @@ exports.deleteMyAccount = catchAsyncErrors(async (req, res, next) => {
 
 exports.loginTeacher = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return next(
-      new ErrorHandler('Please Enter a valid email address and password', 400)
-    );
+    return next(new ErrorHandler('Please enter a valid email address and password', 400));
   }
+
+  console.log(`Attempting login for email: ${email}`);
+
   const user = await loginTeacher(email, password);
-  if (user == null) {
-    return next(new ErrorHandler('Incorrent username or password', 400));
-  } else
-    res.status(200).json({
-      success: true,
-      user: user,
-    });
+
+  if (!user) {
+    console.log(`Login failed for email: ${email}`);
+    return next(new ErrorHandler('Incorrect username or password', 400));
+  }
+
+  console.log(`Login successful for email: ${email}`);
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
 });
