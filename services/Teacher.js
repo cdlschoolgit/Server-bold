@@ -178,13 +178,21 @@ const createTeacherWithDetails = catchAsyncErrors(
     return teacherCreated;
   }
 );
-const loginTeacher = catchAsyncErrors(async (email, password) => {
-  const teachers = await Teacher.find({ email }).select('+password');
-  if (teachers.length == 0) return null;
-  const isPasswordMatched = teachers[0].password == password;
-  if (isPasswordMatched) return teachers[0];
-  else return null;
-});
+const loginTeacher = async (email, password) => {
+  const teacher = await Teacher.findOne({ email }).select('+password');
+
+  if (!teacher) {
+    console.log('Teacher not found');
+    return null;
+  }
+
+  if (teacher.password !== password) {
+    console.log('Password mismatch');
+    return null;
+  }
+
+  return teacher;
+};
 const getTeacherByID = catchAsyncErrors(async (id) => {
   const teacher = await Teacher.findById(id);
   return teacher;
