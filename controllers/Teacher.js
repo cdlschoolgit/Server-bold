@@ -253,6 +253,8 @@ exports.deleteMyAccount = catchAsyncErrors(async (req, res, next) => {
     });
 });
 
+
+
 exports.loginTeacher = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
 
