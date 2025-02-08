@@ -116,19 +116,20 @@ const studensWithTermResults = catchAsyncErrors(async ({ term }) => {
 });
 
 const studensWithResults = catchAsyncErrors(async () => {
-  const data = await Student.aggregate([
-    {
-      $lookup: {
-        from: 'studentresults',
-        localField: '_id',
-        foreignField: 'studentId',
-        as: 'StudentResult',
-      },
-    },
-    {
-      $sort: { name: 1 }, // Sort by name in ascending order (1)
-    },
-  ]);
+  const data = []
+  //   await Student.aggregate([
+  //   {
+  //     $lookup: {
+  //       from: 'studentresults',
+  //       localField: '_id',
+  //       foreignField: 'studentId',
+  //       as: 'StudentResult',
+  //     },
+  //   },
+  //   {
+  //     $sort: { name: 1 }, // Sort by name in ascending order (1)
+  //   },
+  // ]);
   return data;
 });
 
