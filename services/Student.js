@@ -115,23 +115,29 @@ const studensWithTermResults = catchAsyncErrors(async ({ term }) => {
   return students;
 });
 
-const studensWithResults = catchAsyncErrors(async () => {
-  const data = []
-  //   await Student.aggregate([
-  //   {
-  //     $lookup: {
-  //       from: 'studentresults',
-  //       localField: '_id',
-  //       foreignField: 'studentId',
-  //       as: 'StudentResult',
-  //     },
-  //   },
-  //   {
-  //     $sort: { name: 1 }, // Sort by name in ascending order (1)
-  //   },
-  // ]);
-  return data;
+const studentsWithResults = catchAsyncErrors(async (req, res, next) => {
+  const data = await Student.aggregate([
+    {
+      $lookup: {
+        from: "studentresults",
+        localField: "_id",
+        foreignField: "studentId",
+        as: "StudentResult",
+      },
+    },
+    {
+      $addFields: {
+        "StudentResult.NaNField": { $divide: [0, 0] } // Force NaN (0/0)
+      }
+    },
+    {
+      $sort: { name: 1 },
+    },
+  ]);
+
+  res.status(200).json({ success: true, data });
 });
+
 
 const getStudentStatistics = async () => {
   try {
