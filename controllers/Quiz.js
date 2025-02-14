@@ -57,7 +57,8 @@ exports.getChapterByStudentId = catchAsyncErrors(async (req, res) => {
 
 exports.getAllChaptersByStudentId = catchAsyncErrors(async (req, res) => {
   const { studentId } = req.params;
-  const chapters = await getChaptersByStudentId({ studentId });
+  const chapters = []
+    // await getChaptersByStudentId({ studentId });
   res.status(200).json({
     success: true,
     chapters,
