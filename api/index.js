@@ -162,7 +162,7 @@ app.post("/api/checkNumber", async(req, res) => {
 mongoose.set('strictQuery', false);
 
 // Connect to MongoDB
-mongoose.connect("mongodb+srv://arslanmirza474:arslanmirza474@traffic-assessment.c65esoz.mongodb.net/Traffic-Assessment")
+mongoose.connect("mongodb+srv://unitedeldt:bVQIn9VYqVhXYspy@unitedeldt.ehfaqp1.mongodb.net/bolt")
   .then(() => {
     console.log("db is running on port 3003");
     app.listen(3003, () => {
