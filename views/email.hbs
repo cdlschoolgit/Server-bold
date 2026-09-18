@@ -1,170 +1,106 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-      crossorigin="anonymous"
-    /> -->
-
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Email Verification</title>
+    <title>Email Verification - United CDL Training School</title>
     <style>
-      .m-3 {
-        margin: 1rem !important;
-      }
-      .my-4 {
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
-      }
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
-          "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-          "Noto Color Emoji";
-        font-size: var(--bs-body-font-size);
-        font-weight: var(--bs-body-font-weight);
-        line-height: var(--bs-body-line-height);
-        color: var(--bs-body-color);
-        text-align: var(--bs-body-text-align);
-        background-color: var(--bs-body-bg);
-        -webkit-text-size-adjust: 100%;
-        -webkit-tap-highlight-color: transparent;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background-color: #f4f6f9;
+        color: #333333;
       }
-
-      .cus_card {
-        border-radius: 1rem;
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
-          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      .email-container {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       }
-      .h1,
-      h1 {
-        font-size: calc(1.375rem + 1.5vw);
+      .header {
+        background: #0f5a70;
+        padding: 30px 20px;
+        text-align: center;
+        color: #ffffff;
       }
-      @media (min-width: 992px) {
-        .container,
-        .container-lg,
-        .container-md,
-        .container-sm {
-          max-width: 960px;
-        }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: 0.5px;
       }
-      @media (min-width: 768px) {
-        .container,
-        .container-md,
-        .container-sm {
-          max-width: 720px;
-        }
+      .content {
+        padding: 30px;
+        text-align: center;
       }
-      @media (min-width: 576px) {
-        .container,
-        .container-sm {
-          max-width: 540px;
-        }
-        .container,
-        .container-fluid,
-        .container-lg,
-        .container-md,
-        .container-sm,
-        .container-xl,
-        .container-xxl {
-          width: 100%;
-          padding-right: var(--bs-gutter-x, 0.75rem);
-          padding-left: var(--bs-gutter-x, 0.75rem);
-          margin-right: auto;
-          margin-left: auto;
-        }
+      .greeting {
+        font-size: 20px;
+        font-weight: 600;
+        color: #0f5a70;
+        margin-bottom: 15px;
       }
-      *,
-      ::after,
-      ::before {
-        box-sizing: border-box;
+      .message {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #4a5568;
+        margin-bottom: 25px;
       }
-      user agent stylesheet div {
-        display: block;
-      }
-
-      .row > * {
-        flex-shrink: 0;
-        width: 100%;
-        max-width: 100%;
-        padding-right: calc(var(--bs-gutter-x) * 0.5);
-        padding-left: calc(var(--bs-gutter-x) * 0.5);
-        margin-top: var(--bs-gutter-y);
-      }
-
-      .text-center {
-        text-align: center !important;
-      }
-      .m-3 {
-        margin: 1rem !important;
-      }
-
       .btn {
         display: inline-block;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #212529;
-        text-align: center;
-        text-decoration: none;
-        vertical-align: middle;
-        cursor: pointer;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-        background-color: transparent;
-        border: 1px solid transparent;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        border-radius: 0.25rem;
-        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-          border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-      }
-      .btn-success {
-        color: #fff;
+        padding: 14px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff !important;
         background-color: #198754;
-        border-color: #198754;
+        text-decoration: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+        margin: 10px 0 25px 0;
       }
-
-      div {
-        display: block;
+      .footer {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        padding: 20px;
+        text-align: center;
+        font-size: 13px;
+        color: #718096;
       }
-
-      *,
-      ::after,
-      ::before {
-        box-sizing: border-box;
+      .footer a {
+        color: #0f5a70;
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 offset-md-3">
-          <div class="card my-4 text-center cus_card">
-            <h1>HI, <span style="color: #0f5a70"> {{userName}} </span></h1>
-            <p class="m-3">
-              Please Verify that your email address is
-              <b style="color: #0f5a70"> {{emailAddress}} </b>, and you entered
-              it when signing up for
-              <b style="color: #0f5a70"> This Company </b>
-            </p>
-            <div class="text-center m-3" >
-              <a class="btn btn-success" href="{{verifyURL}}" style="color: #fff">
-                Verify Email
-              </a>
-            </div>
-
-            <p class="m-3">
-              if you have not registered for this then please ignore the email
-              <br />
-              <br />
-            </p>
-          </div>
+    <div class="email-container">
+      <div class="header">
+        <h1>United CDL Training School</h1>
+      </div>
+      <div class="content">
+        <div class="greeting">Hello, {{userName}}!</div>
+        <p class="message">
+          Thank you for registering for the <strong>United CDL Training School</strong> ELDT theory program.
+          Please confirm that your email address is <strong>{{emailAddress}}</strong> to activate your student account.
+        </p>
+        <div>
+          <a class="btn" href="{{verifyURL}}" target="_blank">
+            Verify Email Address
+          </a>
         </div>
+        <p style="font-size: 13px; color: #a0aec0; margin-top: 20px;">
+          If the button above does not work, copy and paste this link into your browser:<br />
+          <a href="{{verifyURL}}" style="color: #0f5a70; word-break: break-all;">{{verifyURL}}</a>
+        </p>
+        <p style="font-size: 13px; color: #a0aec0; margin-top: 15px;">
+          If you did not register for United CDL Training School, please disregard this email.
+        </p>
+      </div>
+      <div class="footer">
+        <p>&copy; United CDL Training School. All rights reserved.</p>
+        <p>Support: <a href="mailto:support@unitedeldt.com">support@unitedeldt.com</a> | Phone: 301-888-6339</p>
       </div>
     </div>
   </body>

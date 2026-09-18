@@ -1,4 +1,3 @@
-const catchAsyncErrors = require('../middlewares/catchAsyncError');
 const Student = require('../models/Student');
 const crypto = require('crypto');
 const { PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -12,90 +11,134 @@ const chaptersData = require('../data/chapters.json');
 const logger = require('../utils/logger');
 const StudentResult = require('../models/StudentResult');
 const Form = require('../models/Form');
-const bucketName = 'united-cdl-school';
+const bucketName = process.env.BUCKET_NAME || 'united-cdl-school';
 
-const changePasswordStudent = catchAsyncErrors(
-  async ({ password, email, code }) => {
-    console.log(code, email);
+const changePasswordStudent = async ({ password, email, code }) => {
+  if (!email || !code || !password) return null;
+  const cleanEmail = email.toLowerCase().trim();
 
-    const studentFound = await Student.find({
-      email: email,
-      resetPasswordToken: Number(code),
-    });
-    if (studentFound.length > 0) {
-      studentFound[0].resetPasswordExpire = undefined;
-      studentFound[0].resetPasswordToken = undefined;
+  const studentFound = await Student.findOne({
+    email: cleanEmail,
+    resetPasswordToken: String(code),
+  });
 
-      studentFound[0].password = password;
-      await studentFound[0].save();
-      return true;
+  if (studentFound) {
+    studentFound.resetPasswordExpire = undefined;
+    studentFound.resetPasswordToken = undefined;
+    studentFound.password = password;
+    await studentFound.save();
+    return true;
+  }
+  return null;
+};
+
+const getChaptersByStudentId = async ({ studentId }) => {
+  let chapters = await StudentModuleResult.find({ studentId }).sort({ chapterNo: 1 });
+  if (!chapters || chapters.length === 0) {
+    const student = await Student.findById(studentId);
+    if (student) {
+      await makeChaptersData({ studentId: student._id, studentName: student.name });
+      chapters = await StudentModuleResult.find({ studentId }).sort({ chapterNo: 1 });
     }
-    return null;
   }
-);
-
-const getChaptersByStudentId = catchAsyncErrors(async ({ studentId }) => {
-  const chapters = await StudentModuleResult.find({ studentId });
   return chapters;
-});
+};
 
-const getChapterByStudentIdAndChapterId = catchAsyncErrors(
-  async ({ studentId, chapterNo }) => {
-    const chapters = await StudentModuleResult.find({ studentId, chapterNo });
-    return chapters[0];
+const getChapterByStudentIdAndChapterId = async ({ studentId, chapterNo }) => {
+  const modNo = Number(chapterNo);
+  let chapter = await StudentModuleResult.findOne({ studentId, chapterNo: modNo });
+  if (!chapter) {
+    const student = await Student.findById(studentId);
+    if (student) {
+      await makeChaptersData({ studentId: student._id, studentName: student.name });
+      chapter = await StudentModuleResult.findOne({ studentId, chapterNo: modNo });
+    }
   }
-);
+  return chapter;
+};
 
-const makeChaptersData = catchAsyncErrors(
-  async ({ studentId, studentName }) => {
-    for (let i = 0; i < 35; i++) {
+const makeChaptersData = async ({ studentId, studentName }) => {
+  const existing = await StudentModuleResult.find({ studentId });
+  if (existing && existing.length >= 35) return existing;
+
+  const total = Math.min(35, chaptersData.length);
+  for (let i = 0; i < total; i++) {
+    const chapterNo = chaptersData[i].customIndex || (i + 1);
+    const existingChapter = await StudentModuleResult.findOne({ studentId, chapterNo });
+    if (!existingChapter) {
       await StudentModuleResult.create({
         studentName: studentName,
         studentId: studentId,
-        chapterNo: chaptersData[i].customIndex,
+        chapterNo: chapterNo,
         chapterName: chaptersData[i].name,
+        videoPlayed: 0,
+        percentage: 0,
+        marks: 0,
+        attempted: false,
+        status: 'NOT_ATTEMPTED',
       });
     }
   }
-);
+  return await StudentModuleResult.find({ studentId }).sort({ chapterNo: 1 });
+};
 
-const activateStudentByEmail = catchAsyncErrors(async (token, email) => {
+const activateStudentByEmail = async (token, email, name) => {
+  if (!email) return 'tokenExpired';
+  const cleanEmail = email.toLowerCase().trim();
+
+  // If already verified, allow login immediately
+  const existingStudent = await Student.findOne({ email: cleanEmail });
+  if (existingStudent && existingStudent.verified) {
+    const modulesResults = await StudentModuleResult.find({ studentId: existingStudent._id });
+    if (!modulesResults || modulesResults.length === 0) {
+      await makeChaptersData({ studentId: existingStudent._id, studentName: existingStudent.name });
+    }
+    const studentResults = await StudentResult.find({ studentId: existingStudent._id });
+    if (!studentResults || studentResults.length === 0) {
+      await createResult({ studentName: existingStudent.name, studentId: existingStudent._id });
+    }
+    return 'alreadyVerified';
+  }
+
+  if (!token) return 'tokenExpired';
+
   const resetPasswordToken = crypto
     .createHash('sha256')
-    .update(token)
+    .update(String(token).trim())
     .digest('hex');
 
   const user = await Student.findOne({
-    resetPasswordToken,
+    email: cleanEmail,
+    $or: [
+      { resetPasswordToken: resetPasswordToken },
+      { resetPasswordToken: String(token).trim() },
+    ],
     resetPasswordExpire: { $gt: Date.now() },
-    email,
   });
+
   if (!user) {
     return 'tokenExpired';
-  } else {
-    user.verified = true;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    const modulesResults = await StudentModuleResult.find({
-      studentName: user.name,
-    });
-
-    const studentResults = await StudentResult.find({ studentName: user.name });
-    if (modulesResults.length === 0)
-      // eslint-disable-next-line no-underscore-dangle
-      await makeChaptersData({ studentId: user?._id, studentName: user.name });
-    if (studentResults.length == 0)
-      await createResult({ studentName: user.name, studentId: user?._id });
-
-    await user.save();
-
-    return 'approved';
   }
-});
 
-const studensWithTermResults = catchAsyncErrors(async ({ term }) => {
-  const students = [];
+  user.verified = true;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  const modulesResults = await StudentModuleResult.find({ studentId: user._id });
+  if (!modulesResults || modulesResults.length === 0) {
+    await makeChaptersData({ studentId: user._id, studentName: user.name });
+  }
+
+  const studentResults = await StudentResult.find({ studentId: user._id });
+  if (!studentResults || studentResults.length === 0) {
+    await createResult({ studentName: user.name, studentId: user._id });
+  }
+
+  await user.save();
+  return 'approved';
+};
+
+const studensWithTermResults = async ({ term }) => {
   const data = await Student.aggregate([
     {
       $lookup: {
@@ -106,16 +149,14 @@ const studensWithTermResults = catchAsyncErrors(async ({ term }) => {
       },
     },
     {
-      $sort: { name: 1 }, // Sort by name in ascending order (1)
+      $sort: { name: 1 },
     },
   ]);
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].name.includes(term)) students.push(data[i]);
-  }
-  return students;
-});
+  const cleanTerm = (term || '').toLowerCase();
+  return data.filter((item) => (item.name || '').toLowerCase().includes(cleanTerm));
+};
 
-const studensWithResults = catchAsyncErrors(async () => {
+const studensWithResults = async () => {
   const data = await Student.aggregate([
     {
       $lookup: {
@@ -126,12 +167,11 @@ const studensWithResults = catchAsyncErrors(async () => {
       },
     },
     {
-      $sort: { name: 1 }, // Sort by name in ascending order (1)
+      $sort: { name: 1 },
     },
   ]);
   return data;
-});
-
+};
 
 const getStudentStatistics = async () => {
   try {
@@ -160,30 +200,18 @@ const getStudentStatistics = async () => {
   }
 };
 
-const changeStudentNameByAdmin = catchAsyncErrors(async (id, newName) => {
-  await Student.findOneAndUpdate(id, {
-    $set: { name: newName },
-  });
-  await StudentModuleResult.findOneAndUpdate(id, {
-    $set: { studentName: newName },
-  });
-  await StudentResult.findOneAndUpdate(id, {
-    $set: { studentName: newName },
-  });
-  await Form.findOneAndUpdate(id, {
-    $set: { name: newName },
-  });
+const changeStudentNameByAdmin = async (id, newName) => {
+  await Student.findByIdAndUpdate(id, { $set: { name: newName } });
+  await StudentModuleResult.updateMany({ studentId: id }, { $set: { studentName: newName } });
+  await StudentResult.updateMany({ studentId: id }, { $set: { studentName: newName } });
+  await Form.updateMany({ studentId: id }, { $set: { name: newName } });
   return true;
-});
+};
 
-const deleteStudentAccountById = catchAsyncErrors(async (id) => {
+const deleteStudentAccountById = async (id) => {
   const studentStatus = await Student.findByIdAndDelete(id);
-  const modulesResults = await StudentModuleResult.deleteMany({
-    studentId: id,
-  });
-  const studentResultsStatus = await StudentResult.deleteMany({
-    studentId: id,
-  });
+  const modulesResults = await StudentModuleResult.deleteMany({ studentId: id });
+  const studentResultsStatus = await StudentResult.deleteMany({ studentId: id });
   const formStatus = await Form.deleteMany({ studentId: id });
 
   return {
@@ -192,140 +220,139 @@ const deleteStudentAccountById = catchAsyncErrors(async (id) => {
     ...studentResultsStatus,
     ...formStatus,
   };
-});
+};
 
-const deleteStudentAccounts = catchAsyncErrors(async () => {
+const deleteStudentAccounts = async () => {
   await Student.deleteMany({});
-  return;
-});
-const getAllStudents = catchAsyncErrors(async () => {
+};
+
+const getAllStudents = async () => {
   const students = await Student.find({}, null, {
     sort: { name: 'asc' },
   });
   return students;
-});
-const getStudentByID = catchAsyncErrors(async (id) => {
+};
+
+const getStudentByID = async (id) => {
   const student = await Student.findById(id, {
     resetPasswordExpire: 0,
     resetPasswordToken: 0,
     __v: 0,
   });
   return student;
-});
+};
 
-const getStudentsByTerm = catchAsyncErrors(async ({ term }) => {
-  logger.info(term);
-  // const students = await Student.find({
-  //   userName: { $regex: `/a/`, $options: "i" },
-  // });
-  const students = [];
+const getStudentsByTerm = async ({ term }) => {
+  const cleanTerm = (term || '').toLowerCase();
   const studentsAll = await Student.find({}, null, {
     sort: { name: 'asc' },
   });
-  for (let i = 0; i < studentsAll.length; i++) {
-    if (studentsAll[i].name.includes(term)) students.push(studentsAll[i]);
-  }
-  // console.log(students);
-  return students;
-});
+  return studentsAll.filter((s) => (s.name || '').toLowerCase().includes(cleanTerm));
+};
 
-const checkNumbersStudent = catchAsyncErrors(async ({ email, code }) => {
-  const studentFound = await Student.find({ email, code });
-  if (studentFound.length > 0) {
-    if (studentFound[0].resetPasswordToken == code) {
-      return true;
-    } else return null;
-  } else return null;
-});
-const changePassword = catchAsyncErrors(async ({ password, email, code }) => {
-  const studentFound = await Student.find({ email, code });
-  if (studentFound.length > 0) {
-    studentFound[0].password = password;
-    studentFound[0].resetPasswordExpire = undefined;
-    studentFound[0].passwordForgot = undefined;
-    studentFound[0].resetPasswordToken = undefined;
-    await studentFound[0].save();
-  } else return null;
-});
-const generateNumersStudent = catchAsyncErrors(async ({ email }) => {
-  const studentFound = await Student.find({ email: email });
-  // console.log("student", studentFound);
+const checkNumbersStudent = async ({ email, code }) => {
+  if (!email || !code) return null;
+  const cleanEmail = email.toLowerCase().trim();
+  const studentFound = await Student.findOne({
+    email: cleanEmail,
+    resetPasswordToken: String(code),
+  });
+  return !!studentFound;
+};
 
-  if (studentFound.length > 0) {
-    studentFound[0].resetPasswordToken = Math.floor(Math.random() * 9000000);
-    studentFound[0].resetPasswordExpire = Date.now() + 30 * 60 * 1000;
-
-    pinCodeEmail({
-      userName: studentFound[0].name,
-      email: studentFound[0].email,
-      subject: 'Password Reset PinCode',
-      pinCode: studentFound[0].resetPasswordToken,
-    });
-    // console.log("email sent");
-    await studentFound[0].save();
+const changePassword = async ({ password, email, code }) => {
+  if (!email || !code || !password) return null;
+  const cleanEmail = email.toLowerCase().trim();
+  const studentFound = await Student.findOne({
+    email: cleanEmail,
+    resetPasswordToken: String(code),
+  });
+  if (studentFound) {
+    studentFound.password = password;
+    studentFound.resetPasswordExpire = undefined;
+    studentFound.passwordForgot = undefined;
+    studentFound.resetPasswordToken = undefined;
+    await studentFound.save();
     return true;
-  } else return null;
-});
-
-const createStudentWithDetails = catchAsyncErrors(
-  async (name, email, password) => {
-    const studentCreated = await Student.create({ name, email, password });
-    const resetToken = studentCreated.getResetPasswordToken();
-
-    // const SERVER_URL = "https://traffic-assessment.herokuapp.com";
-    const verifyURL = `https://traffic-assessment.herokuapp.com/verifyStudent/?token=${resetToken}&name=${name}&email=${email}`;
-    sendEmail({
-      userName: name,
-      email: email,
-      subject: 'Account Verification Through Email',
-      verifyURL,
-    });
-    console.log("sending email")
-    studentCreated.save();
-    return studentCreated;
   }
-);
+  return null;
+};
 
-// For Making Request Only
+const generateNumersStudent = async ({ email }) => {
+  if (!email) return null;
+  const cleanEmail = email.toLowerCase().trim();
+  const studentFound = await Student.findOne({ email: cleanEmail });
 
-// For Making Request Only
+  if (studentFound) {
+    const pinCode = Math.floor(100000 + Math.random() * 900000);
+    studentFound.resetPasswordToken = String(pinCode);
+    studentFound.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+    await studentFound.save();
 
-const loginStudent = catchAsyncErrors(async (email, password) => {
-  const students = await Student.find({
-    email: { $regex: email, $options: 'i' },
-  }).select('+password');
-  if (students.length == 0) return null;
-  const isPasswordMatched = students[0].password == password;
-  if (isPasswordMatched) return students[0];
-  else return null;
-});
+    await pinCodeEmail({
+      userName: studentFound.name,
+      email: studentFound.email,
+      subject: 'Password Reset Pin Code - United CDL School',
+      pinCode,
+    });
+    return true;
+  }
+  return null;
+};
 
-// function checkIsEnrolledAndRequest(requests, studentId, enrollments) {
-//   const requested = requests.filter((item) => item == studentId);
-//   if (requested.length > 0) {
-//     return true;
-//   }
-//   const enrolled = enrollments.filter((item) => item == studentId);
-//   if (enrolled.length > 0) {
-//     return true;
-//   }
+const createStudentWithDetails = async (name, email, password) => {
+  const cleanEmail = email.toLowerCase().trim();
+  const studentCreated = await Student.create({
+    name,
+    email: cleanEmail,
+    password,
+    verified: false,
+    active: false,
+    isStudent: false,
+    isDataCollected: false,
+    isFormApproved: false,
+    isEnrolled: false,
+    isAgreement: false,
+  });
 
-//   return false;
-// }
+  const resetToken = studentCreated.getResetPasswordToken();
+  await studentCreated.save();
 
-const uploadMultiAssignments = catchAsyncErrors(async (req) => {
+  const serverUrl = process.env.SERVER_URL || 'https://unitedcdlschool.vercel.app';
+  const verifyURL = `${serverUrl}/api/verifyStudent?token=${resetToken}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(cleanEmail)}`;
+
+  await sendEmail({
+    userName: name,
+    email: cleanEmail,
+    subject: 'Account Verification - United CDL Training School',
+    verifyURL,
+  });
+
+  return studentCreated;
+};
+
+const loginStudent = async (email, password) => {
+  if (!email || !password) return null;
+  const cleanEmail = email.toLowerCase().trim();
+  const student = await Student.findOne({ email: cleanEmail }).select('+password');
+  if (!student) return null;
+  if (student.password !== password) return null;
+  return student;
+};
+
+const uploadMultiAssignments = async (req) => {
   const files = req.files;
   const studentId = req.body.id;
   const studentById = await Student.findById(studentId);
+  if (!studentById) return false;
+
   const docsUploading = [];
 
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < (files || []).length; i++) {
     const fileName_time = files[i]?.originalname;
     const fileName = getFileName(fileName_time);
-    if (fileName == undefined) return false;
+    if (!fileName) return false;
     const arrBuf = files[i].buffer;
-
-    // Configure the upload details to send to S3
 
     const uploadParams = {
       Bucket: bucketName,
@@ -334,7 +361,6 @@ const uploadMultiAssignments = catchAsyncErrors(async (req) => {
       ContentType: files[i].mimetype,
     };
 
-    // push image on server
     await s3Client.send(new PutObjectCommand(uploadParams));
 
     const url = await getSignedUrl(
@@ -343,34 +369,27 @@ const uploadMultiAssignments = catchAsyncErrors(async (req) => {
         Bucket: bucketName,
         Key: `Documents/${fileName}`,
       }),
-      { expiresIn: 60 } // 60 seconds
+      { expiresIn: 3600 }
     );
     docsUploading.push({
       fileName,
       url: url.split('?')[0],
     });
   }
+
   studentById.docs = docsUploading;
   studentById.docsUploaded = true;
-  studentById.save();
-
+  await studentById.save();
   return true;
-});
+};
 
 function getFileName(fileName_time) {
-  const name_array = fileName_time.split('.');
-  if (
-    name_array[1] == 'docx' ||
-    name_array[1] == 'pdf' ||
-    name_array[1] == 'odt' ||
-    name_array[1] == 'doc'
-  ) {
-    name_array.splice(1, 0, '-' + new Date().toUTCString() + '.');
-    let finalFileName = '';
-    name_array.forEach((element) => {
-      finalFileName += element;
-    });
-    return finalFileName;
+  if (!fileName_time) return null;
+  const parts = fileName_time.split('.');
+  const ext = parts.pop()?.toLowerCase();
+  if (['docx', 'pdf', 'odt', 'doc', 'png', 'jpg', 'jpeg'].includes(ext)) {
+    const base = parts.join('.');
+    return `${base}-${Date.now()}.${ext}`;
   }
   return null;
 }

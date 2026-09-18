@@ -1,65 +1,249 @@
-// server.js
 const express = require('express');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Student = require('../models/Student');
 const cors = require('cors');
 const path = require('path');
-// Load environment variables
-dotenv.config();
 
-const app = new express();
+// Load environment variables (.env in root or config/config.env)
+dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../config/config.env') });
+
+const connectDatabase = require('../db/connection');
+const Student = require('../models/Student');
 const errorMiddleware = require('../middlewares/errors');
+const studentRoutes = require('../routes/Student');
+const teacherRoutes = require('../routes/Teacher');
+
+const app = express();
+
 const corsOptions = {
   origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
-
-
-const studentRoutes = require('../routes/Student');
-const teacherRoutes = require('../routes/Teacher');
 app.use(express.json());
 
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, '../views'));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Serverless DB connection middleware
+app.use(async (req, res, next) => {
+  try {
+    await connectDatabase();
+  } catch (err) {
+    console.error('Error connecting to database in request:', err);
+  }
+  next();
+});
+
+// Neutral Landing Page Handler
+const renderNeutralPage = (req, res) => {
+  if (req.accepts('html')) {
+    return res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>United CDL Training School - Server API</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0d2830 0%, #0f5a70 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #ffffff;
+    }
+    .container {
+      max-width: 680px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 45px 35px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseAnim 2s infinite;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    h1 {
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    p.subtitle {
+      font-size: 16px;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+    @media (max-width: 540px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 15px;
+      color: #f1f5f9;
+      font-weight: 500;
+    }
+    .notice {
+      background: rgba(15, 90, 112, 0.4);
+      border-left: 4px solid #38bdf8;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      text-align: left;
+      margin-bottom: 25px;
+    }
+    .footer {
+      font-size: 13px;
+      color: #94a3b8;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+    }
+    .footer a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">
+      <span class="pulse"></span>
+      API SYSTEM OPERATIONAL
+    </div>
+    <h1>United CDL Training School</h1>
+    <p class="subtitle">
+      Backend Application Services for Entry-Level Driver Training (ELDT), Student Assessments, and Instructor Administration.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Service Environment</div>
+        <div class="card-desc">Production API Gateway</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Organization</div>
+        <div class="card-desc">United CDL Training School</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Theory Modules</div>
+        <div class="card-desc">35 Standards-Compliant Lessons</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Support Contact</div>
+        <div class="card-desc">support@unitedeldt.com</div>
+      </div>
+    </div>
+    <div class="notice">
+      <strong>Notice:</strong> This server and its API endpoints are proprietary systems owned and operated by United CDL Training School. Access is restricted to authorized students and institutional personnel.
+    </div>
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} United CDL Training School. All rights reserved. &bull; <a href="https://www.unitedcdleldt.com" target="_blank">unitedcdleldt.com</a>
+    </div>
+  </div>
+</body>
+</html>`);
+  }
+
+  return res.status(200).json({
+    status: 'online',
+    service: 'United CDL Training School API Gateway',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+};
+
+// Root & API Neutral Page Endpoints
+app.get('/', renderNeutralPage);
+app.get('/api', renderNeutralPage);
+app.get('/api/', renderNeutralPage);
+
+// Mount main Student and Teacher routes
 app.use(studentRoutes);
 app.use(teacherRoutes);
 
-app.use(errorMiddleware);
-
-app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
+// Student Analytics & Helper Endpoints
 app.get('/api/students/count', async (req, res) => {
   try {
-    const year = req.query.year; // Get the year from the query parameter
+    const year = req.query.year || new Date().getFullYear();
     const startDate = new Date(`${year}-01-01`);
-    const endDate = new Date(`${year}-12-31`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
 
-    // Count the number of students registered in specified year
     const registeredCount = await Student.countDocuments({
-      createAt: { $gte: startDate, $lte: endDate }
+      createAt: { $gte: startDate, $lte: endDate },
     });
 
-    // Count the number of active students in the specified year
     const activeCount = await Student.countDocuments({
       createAt: { $gte: startDate, $lte: endDate },
-      active: true
+      active: true,
     });
 
-    // Count the number of completed students in the specified year
     const completedCount = await Student.countDocuments({
       createAt: { $gte: startDate, $lte: endDate },
-      completed: true
+      completed: true,
     });
 
-    // Return the counts as JSON response
     res.json({
       year,
       totalRegistered: registeredCount,
-      active:activeCount,
+      active: activeCount,
       completed: completedCount,
     });
   } catch (error) {
@@ -70,47 +254,37 @@ app.get('/api/students/count', async (req, res) => {
 
 app.get('/api/students/timestamps', async (req, res) => {
   try {
-    // Extract the year from the query parameter
     const { year } = req.query;
-
-    // Check if the year is provided
     if (!year) {
       return res.status(400).json({ success: false, error: 'Year parameter is required' });
     }
 
-    // Parse the year to a number
-    const parsedYear = parseInt(year);
-
-    // Check if the year is valid
+    const parsedYear = parseInt(year, 10);
     if (isNaN(parsedYear)) {
       return res.status(400).json({ success: false, error: 'Invalid year parameter' });
     }
 
-    // Get the start and end date of the provided year
-    const startDate = new Date(parsedYear, 0, 1); // January 1st of the year
-    const endDate = new Date(parsedYear + 1, 0, 1); // January 1st of the next year
+    const startDate = new Date(parsedYear, 0, 1);
+    const endDate = new Date(parsedYear + 1, 0, 1);
 
-    // Query the database to find students registered within the specified year
-    const students = await Student.find({
-      createAt: { $gte: startDate, $lt: endDate }
-    }, 'createAt');
+    const students = await Student.find(
+      {
+        createAt: { $gte: startDate, $lt: endDate },
+      },
+      'createAt'
+    );
 
-    // Extract the createAt timestamps from the result
-    const timestamps = students.map(student => ({ createAt: student.createAt }));
-
-    // Send the timestamps as a response
+    const timestamps = students.map((s) => ({ createAt: s.createAt }));
     res.json({ success: true, data: timestamps });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
-// Define a route to fetch a student by _id
-app.get('/api/students/:id', async (req, res) => {
-  const studentId = req.params.id;
 
+app.get('/api/students/:id', async (req, res) => {
   try {
-    const student = await Student.findById(studentId);
+    const student = await Student.findById(req.params.id);
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
@@ -121,20 +295,7 @@ app.get('/api/students/:id', async (req, res) => {
   }
 });
 
-// Start the server
-app.get("/api/",(req,res)=>{
-  res.send("working")
-})
-
-
-
-const checkNumbersStudent = async ({ email, code }) => {
-  const studentFound = await Student.findOne({ email, resetPasswordToken: code });
-  return !!studentFound;
-};
-
-// Define the POST endpoint
-app.post("/api/checkNumber", async(req, res) => {
+app.post('/api/checkNumber', async (req, res) => {
   const { email, code } = req.body;
 
   if (!email || !code) {
@@ -144,9 +305,13 @@ app.post("/api/checkNumber", async(req, res) => {
     });
   }
 
-  const result = await checkNumbersStudent({ email, code });
+  const cleanEmail = email.toLowerCase().trim();
+  const studentFound = await Student.findOne({
+    email: cleanEmail,
+    resetPasswordToken: String(code),
+  });
 
-  if (result) {
+  if (studentFound) {
     return res.status(200).json({
       success: true,
       message: 'Code is verified, please change the password.',
@@ -158,18 +323,19 @@ app.post("/api/checkNumber", async(req, res) => {
     });
   }
 });
-// Set the strictQuery option to suppress the deprecation warning
-mongoose.set('strictQuery', false);
 
-// Connect to MongoDB
-mongoose.connect("mongodb+srv://cdlbolt:IpM309LUdZ8l0FVn@cdleldt.jo3m8tb.mongodb.net/bolt")
-  .then(() => {
-    console.log("db is running on port 3003");
-    app.listen(3003, () => {
-      console.log("db and server is running on port 3003");
+// Centralized Error Middleware
+app.use(errorMiddleware);
+
+// Export for Vercel Serverless
+module.exports = app;
+
+// Run standalone server if executed directly
+if (require.main === module) {
+  const port = process.env.PORT || 4000;
+  connectDatabase().then(() => {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
     });
-  })
-  .catch(err => {
-    console.error('Error connecting to MongoDB:', err);
   });
-
+}

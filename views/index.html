@@ -77,9 +77,9 @@
             password: pass_1,
           };
           const apiResult = await fetch(
-            `http://gamereeserver.com/password/change`,
+            `/api/changePassword`,
             {
-              method: "POST", // or 'PUT'
+              method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },

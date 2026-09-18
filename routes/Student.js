@@ -82,6 +82,7 @@ router.route('/api/createStudent').post(createStudent);
 router.route('/api/getAllStudents').get(getStudents);
 router.route('/api/getMyInfo/:id').get(getMyInfo);
 router.route('/api/verifyStudent').get(activateStudent);
+router.route('/verifyStudent').get(activateStudent);
 
 router
   .route('/api/makeApplicationForEnrollment')

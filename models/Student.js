@@ -73,7 +73,7 @@ const Student = new mongoose.Schema({
   docs: [],
   createAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   passwordForgot: {
     type: Number,
@@ -96,7 +96,7 @@ Student.pre('validate', async function (next) {
 });
 
 Student.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return enteredPassword === this.password;
 };
 
 Student.methods.getResetPasswordToken = function () {
@@ -105,7 +105,7 @@ Student.methods.getResetPasswordToken = function () {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+  this.resetPasswordExpire = Date.now() + 24 * 60 * 60 * 1000;
   return resetToken;
 };
 

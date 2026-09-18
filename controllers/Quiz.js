@@ -24,8 +24,7 @@ exports.updateTheIdOfStudentInModules = catchAsyncErrors(async (req, res) => {
 });
 
 exports.getAllChapters = catchAsyncErrors(async (req, res) => {
-  // const chapters = []
-     await getAllChaptersDetails();
+  const chapters = await getAllChaptersDetails();
   res.status(200).json({
     success: true,
     chapters,

@@ -1,17 +1,31 @@
-const catchAsyncErrors = require('../middlewares/catchAsyncError');
-
 const DataCollection = require('../models/DataCollectionForm');
 const Student = require('../models/Student');
 
-const createDataCollection = catchAsyncErrors(
-  async ({
+const createDataCollection = async ({
+  studentId,
+  name,
+  address,
+  phoneNum,
+  dob,
+  socialSociety,
+  email,
+  race,
+  gender,
+  hispanicOrigin,
+  militaryVeteran,
+  disablePerson,
+  HighestGradeCompleted,
+  dateOfSign,
+  applicantSign,
+}) => {
+  const dataCollectionObj = await DataCollection.create({
     studentId,
     name,
     address,
     phoneNum,
     dob,
     socialSociety,
-    email,
+    email: (email || '').toLowerCase().trim(),
     race,
     gender,
     hispanicOrigin,
@@ -20,35 +34,22 @@ const createDataCollection = catchAsyncErrors(
     HighestGradeCompleted,
     dateOfSign,
     applicantSign,
-  }) => {
-    const dataCollectionObj = await DataCollection.create({
-      studentId,
-      name,
-      address,
-      phoneNum,
-      dob,
-      socialSociety,
-      email,
-      race,
-      gender,
-      hispanicOrigin,
-      militaryVeteran,
-      disablePerson,
-      HighestGradeCompleted,
-      dateOfSign,
-      applicantSign,
-      status: 'PENDING',
-    });
-    const studentById = await Student.findById(studentId);
+    status: 'PENDING',
+  });
+
+  const studentById = await Student.findById(studentId);
+  if (studentById) {
     studentById.isDataCollected = true;
     await studentById.save();
-
-    return dataCollectionObj;
   }
-);
-const getBasicInfoByEmail = catchAsyncErrors(async (email) => {
+
+  return dataCollectionObj;
+};
+
+const getBasicInfoByEmail = async (email) => {
+  const cleanEmail = (email || '').toLowerCase().trim();
   const dataCollected = await DataCollection.find(
-    { studentId: email },
+    { $or: [{ email: cleanEmail }, { studentId: email }] },
     {
       status: 0,
       applicantSign: 0,
@@ -65,34 +66,46 @@ const getBasicInfoByEmail = catchAsyncErrors(async (email) => {
     }
   );
   return dataCollected;
-});
+};
 
-const getDataCollectionById = catchAsyncErrors(async () => {});
-const getDataCollectionByName = catchAsyncErrors(async () => {});
-const getDataCollectionByEmail = catchAsyncErrors(async (email) => {
-  const dataCollected = await DataCollection.find({ studentId: email });
+const getDataCollectionById = async (id) => {
+  return await DataCollection.findById(id);
+};
+
+const getDataCollectionByName = async (name) => {
+  return await DataCollection.find({ name });
+};
+
+const getDataCollectionByEmail = async (email) => {
+  const cleanEmail = (email || '').toLowerCase().trim();
+  const dataCollected = await DataCollection.find({
+    $or: [{ email: cleanEmail }, { studentId: email }],
+  });
   return dataCollected;
-});
-const getDataCollectionAll = catchAsyncErrors(async () => {
+};
+
+const getDataCollectionAll = async () => {
   const dataCollected = await DataCollection.find();
   return dataCollected;
-});
+};
 
-const approveDataCollectionForm = catchAsyncErrors(
-  async ({ adminId, studentEmail, adminName }) => {
-    const form = await DataCollection.find({ email: studentEmail });
-    if (form.length > 0) {
-      form[0].checkedAt = new Date();
-      form[0].checkedBy = adminId;
-      form[0].checkedByName = adminName;
-      form[0].checkedBySign = adminName;
-      form[0].status = 'ACCEPTED';
-      await form[0].save();
-      return form[0];
-    } else return null;
+const approveDataCollectionForm = async ({ adminId, studentEmail, adminName }) => {
+  const cleanEmail = (studentEmail || '').toLowerCase().trim();
+  const form = await DataCollection.find({ email: cleanEmail });
+  if (form.length > 0) {
+    form[0].checkedAt = new Date();
+    form[0].checkedBy = adminId;
+    form[0].checkedByName = adminName;
+    form[0].checkedBySign = adminName;
+    form[0].status = 'ACCEPTED';
+    await form[0].save();
+    return form[0];
   }
-);
-const rejectDataCollectionForm = catchAsyncErrors(async () => {});
+  return null;
+};
+
+const rejectDataCollectionForm = async () => {};
+
 module.exports = {
   createDataCollection,
   getDataCollectionById,

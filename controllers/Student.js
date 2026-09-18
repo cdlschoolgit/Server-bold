@@ -138,27 +138,16 @@ exports.attempQuiz = catchAsyncErrors(async (req, res, next) => {
 });
 exports.activateStudent = catchAsyncErrors(async (req, res, next) => {
   const { token, email, name } = req.query;
-  console.log("verifying")
+  console.log('Verifying student account:', email);
   const result = await activateStudentByEmail(token, email, name);
-  if (result === 'tokenExpired') {
-    res.redirect(`https://www.unitedcdleldt.com/tokenExpired`);
-    // res.status(400).json({
-    //   success: false,
-    //   message: "Token Expired",
-    // });
-  } else if (result === 'approved') {
-    // have to replace with redirect
-    res.redirect(`https://www.unitedcdleldt.com/student/Login`);
-    // res.status(200).json({
-    //   success: true,
-    //   message: "Account has been Approved",
-    // });
+  const frontendUrl = process.env.FRONT_END_URL_PROD || 'https://www.unitedcdleldt.com';
+
+  if (result === 'approved' || result === 'alreadyVerified') {
+    return res.redirect(`${frontendUrl}/student/Login`);
+  } else if (result === 'tokenExpired') {
+    return res.redirect(`${frontendUrl}/tokenExpired`);
   } else {
-    res.redirect(`https://www.unitedcdleldt.com/${email}`);
-    // res.status(404).json({
-    //   success: false,
-    //   message: "User Not Found",
-    // });
+    return res.redirect(`${frontendUrl}/student/Login`);
   }
 });
 

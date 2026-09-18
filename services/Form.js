@@ -1,119 +1,129 @@
-const catchAsyncErrors = require('../middlewares/catchAsyncError');
 const FormSchema = require('../models/Form');
 const Student = require('../models/Student');
-const { makeStudentActiveById } = require('./Teacher');
-const createFormData = catchAsyncErrors(
-  async ({
-    studentId,
-    name,
-    address,
-    phoneNum,
-    dob,
-    socialSociety,
-    email,
-    gender,
-    transmission,
-  }) => {
-    const FormData = await FormSchema.create({
-      name: name,
-      phoneNumber: phoneNum,
-      address: address,
-      gender: gender,
-      email: email,
-      studentId: studentId,
-      dob: dob,
-      socialSecurity: socialSociety,
-      transmission: transmission,
-    });
-    if (FormData) {
-      const student = await Student.findById(studentId);
+const StudentModuleResult = require('../models/StudentModuleResult');
+const StudentResult = require('../models/StudentResult');
+
+const createFormData = async ({
+  studentId,
+  name,
+  address,
+  phoneNum,
+  dob,
+  socialSociety,
+  email,
+  gender,
+  transmission,
+}) => {
+  const cleanEmail = (email || '').toLowerCase().trim();
+  const FormData = await FormSchema.create({
+    name: name,
+    phoneNumber: phoneNum,
+    address: address,
+    gender: gender,
+    email: cleanEmail,
+    studentId: studentId,
+    dob: dob,
+    socialSecurity: socialSociety,
+    transmission: transmission,
+    status: 'PENDING',
+  });
+
+  if (FormData) {
+    const student = await Student.findById(studentId);
+    if (student) {
       student.isAgreement = true;
       student.isDataCollected = true;
       student.isEnrolled = true;
       await student.save();
-      return true;
-    } else return false;
+    }
+    return true;
   }
-);
+  return false;
+};
 
-const approveFormData = catchAsyncErrors(
-  async ({ studentId, formId, checkedBy, checkedBySign }) => {
-    const formData = await FormSchema.findById(formId);
-    if (formData) {
-      formData.checkedBy = checkedBy;
-      formData.checkedAt = Date.now();
-      formData.checkedBySign = checkedBySign || 'Mirza Arslan';
-      formData.status = 'ACCEPTED';
-      await formData.save();
+const approveFormData = async ({ studentId, formId, checkedBy, checkedBySign }) => {
+  const formData = await FormSchema.findById(formId);
+  if (!formData) return false;
 
-      const student = await Student.findById(studentId);
-      student.isFormApproved = true;
-      student.isStudent = true;
+  formData.checkedBy = checkedBy;
+  formData.checkedAt = Date.now();
+  formData.checkedBySign = checkedBySign || 'Mirza Arslan';
+  formData.status = 'ACCEPTED';
+  await formData.save();
 
-      await student.save();
-      await makeStudentActiveById({ studentId, teacherId: checkedBy });
+  const student = await Student.findById(studentId);
+  if (student) {
+    student.isFormApproved = true;
+    student.isStudent = true;
+    student.active = true;
+    await student.save();
 
-      return true;
-    } else return false;
+    // Ensure 35 modules exist for this student so modules page is never blank
+    const { makeChaptersData } = require('./Student');
+    const { createResult } = require('./StudentResult');
+
+    const modules = await StudentModuleResult.find({ studentId: student._id });
+    if (!modules || modules.length === 0) {
+      await makeChaptersData({ studentId: student._id, studentName: student.name });
+    }
+    const overall = await StudentResult.findOne({ studentId: student._id });
+    if (!overall) {
+      await createResult({ studentName: student.name, studentId: student._id });
+    }
   }
-);
-const getAllFormData = catchAsyncErrors(async () => {
+
+  return true;
+};
+
+const getAllFormData = async () => {
   const allForms = await FormSchema.find({}, null, {
     sort: { name: 'asc' },
   });
   return allForms;
-});
+};
 
-const FormById = catchAsyncErrors(async ({ id }) => {
+const FormById = async ({ id }) => {
   const form = await FormSchema.findById(id);
-  if (!form) return null;
   return form;
-});
+};
 
-const FormByStudentId = catchAsyncErrors(async ({ studentId }) => {
+const FormByStudentId = async ({ studentId }) => {
   const form = await FormSchema.find({ studentId: studentId });
-  if (!form) return null;
   return form;
-});
-const formsByTerm = catchAsyncErrors(async ({ term }) => {
-  const forms = [];
+};
+
+const formsByTerm = async ({ term }) => {
+  const cleanTerm = (term || '').toLowerCase();
   const allForms = await FormSchema.find({}, null, {
     sort: { name: 'asc' },
   });
-  for (let i = 0; i < allForms.length; i++) {
-    if (allForms[i].name.toLowerCase().includes(term.toLowerCase()))
-      forms.push(allForms[i]);
-  }
-  // console.log(students);
-  return forms;
-});
-const editFormData = catchAsyncErrors(
-  async ({
-    formId,
-    name,
-    address,
-    phoneNum,
-    dob,
-    socialSociety,
-    gender,
-    transmission,
-    // ModifiedId,
-  }) => {
-    const form = await FormSchema.findById(formId);
-    if (!form) return null;
-    else {
-      form.name = name;
-      form.address = address;
-      form.phoneNumber = phoneNum;
-      form.dob = dob;
-      form.socialSecurity = socialSociety;
-      form.gender = gender;
-      form.transmission = transmission;
-      await form.save();
-      return true;
-    }
-  }
-);
+  return allForms.filter((f) => (f.name || '').toLowerCase().includes(cleanTerm));
+};
+
+const editFormData = async ({
+  formId,
+  name,
+  address,
+  phoneNum,
+  dob,
+  socialSociety,
+  gender,
+  transmission,
+}) => {
+  const form = await FormSchema.findById(formId);
+  if (!form) return null;
+
+  form.name = name;
+  form.address = address;
+  form.phoneNumber = phoneNum;
+  form.dob = dob;
+  form.socialSecurity = socialSociety;
+  form.gender = gender;
+  form.transmission = transmission;
+  await form.save();
+  return true;
+};
+
 module.exports = {
   createFormData,
   editFormData,

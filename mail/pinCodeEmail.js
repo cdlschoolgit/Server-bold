@@ -12,36 +12,45 @@ const handlebarOptions = {
   extName: '.hbs',
 };
 
-const notifyEmail = async (options) => {
+const pinCodeEmail = async (options) => {
+  const user = process.env.SMTP_USER || 'login@unitedeldt.com';
+  const pass = process.env.SMTP_PASSWORD || 'kqdh tfza wzzg jldm';
+
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'login@unitedeldt.com',
-      pass: 'kqdh tfza wzzg jldm',
+      user,
+      pass,
     },
-    debug: true,
+    debug: process.env.NODE_ENV !== 'PRODUCTION',
   });
 
   transporter.use('compile', hbs(handlebarOptions));
 
+  const fromEmail = process.env.SMTP_FROM_EMAIL || 'support@unitedeldt.com';
+  const fromName = process.env.SMTP_FROM_NAME || 'United CDL Training School';
+
   const message = {
-    from: `"United-CDL-School" <support@unitedeldt.com>`, 
+    from: `"${fromName}" <${fromEmail}>`,
     to: options.email,
-    subject: options.subject,
+    subject: options.subject || 'Password Reset Pin Code - United CDL School',
     template: 'pinCode',
     context: {
-      userName: options.name,
+      userName: options.name || options.userName,
       pinCode: options.pinCode,
       email: options.email,
+      year: new Date().getFullYear(),
     },
   };
 
   try {
     const mailSent = await transporter.sendMail(message);
-    console.log('Email sent:', mailSent);
+    console.log('Pin code email sent:', mailSent?.messageId);
+    return mailSent;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending pin code email:', error);
+    return null;
   }
 };
 
-module.exports = notifyEmail;
+module.exports = pinCodeEmail;

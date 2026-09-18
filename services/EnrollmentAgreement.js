@@ -1,16 +1,31 @@
-const catchAsyncErrors = require('../middlewares/catchAsyncError');
 const EnrollmentAgreement = require('../models/EnrollmentAgreement');
 const Student = require('../models/Student');
 
-const createEnrollmentAgreement = catchAsyncErrors(
-  async ({
+const createEnrollmentAgreement = async ({
+  studentId,
+  name,
+  address,
+  phoneNum,
+  dob,
+  socialSociety,
+  email,
+  program,
+  tranmission,
+  constOfTution,
+  downPayment,
+  thirdPartyPayer,
+  weeklyPayments,
+  loanPayment,
+  applicantSign,
+}) => {
+  const enrollmentAgreementObj = await EnrollmentAgreement.create({
     studentId,
     name,
     address,
     phoneNum,
     dob,
     socialSociety,
-    email,
+    email: (email || '').toLowerCase().trim(),
     program,
     tranmission,
     constOfTution,
@@ -19,88 +34,82 @@ const createEnrollmentAgreement = catchAsyncErrors(
     weeklyPayments,
     loanPayment,
     applicantSign,
-  }) => {
-    const enrollmentAgreementObj = await EnrollmentAgreement.create({
-      studentId,
-      name,
-      address,
-      phoneNum,
-      dob,
-      socialSociety,
-      email,
-      program,
-      tranmission,
-      constOfTution,
-      downPayment,
-      thirdPartyPayer,
-      weeklyPayments,
-      loanPayment,
-      applicantSign,
-      dateOfSign: new Date(),
-      status: 'PENDING',
-    });
+    dateOfSign: new Date(),
+    status: 'PENDING',
+  });
 
-    const studentById = await Student.findById(studentId);
+  const studentById = await Student.findById(studentId);
+  if (studentById) {
     studentById.isAgreement = true;
-    // studentById.isStudent = true;
     await studentById.save();
-
-    return enrollmentAgreementObj;
   }
-);
 
-const getEnrollmentAgreementsAll = catchAsyncErrors(async () => {
+  return enrollmentAgreementObj;
+};
+
+const getEnrollmentAgreementsAll = async () => {
   const agreement = await EnrollmentAgreement.find();
   return agreement;
-});
+};
 
-const getEnrollmentAgreementById = catchAsyncErrors(async () => {});
-const getEnrollmentAgreementByName = catchAsyncErrors(async () => {});
-const getEnrollmentAgreementByEmail = catchAsyncErrors(async (email) => {
-  const agreement = await EnrollmentAgreement.find({ studentId: email });
+const getEnrollmentAgreementById = async (id) => {
+  return await EnrollmentAgreement.findById(id);
+};
+
+const getEnrollmentAgreementByName = async (name) => {
+  return await EnrollmentAgreement.find({ name });
+};
+
+const getEnrollmentAgreementByEmail = async (email) => {
+  const cleanEmail = (email || '').toLowerCase().trim();
+  const agreement = await EnrollmentAgreement.find({
+    $or: [{ email: cleanEmail }, { studentId: email }],
+  });
   return agreement;
-});
-const approveEnrollmentAgreement = catchAsyncErrors(
-  async ({
-    adminId,
-    studentEmail,
-    adminName,
+};
 
-    constOfTution,
-    downPayment,
-    thirdPartyPayer,
-    weeklyPayments,
-    loanPayment,
-  }) => {
-    const form = await EnrollmentAgreement.find({ email: studentEmail });
-    if (form.length > 0) {
-      form[0].constOfTution = constOfTution;
-      form[0].downPayment = downPayment;
-      form[0].thirdPartyPayer = thirdPartyPayer;
-      form[0].weeklyPayments = weeklyPayments;
-      form[0].loanPayment = loanPayment;
+const approveEnrollmentAgreement = async ({
+  adminId,
+  studentEmail,
+  adminName,
+  constOfTution,
+  downPayment,
+  thirdPartyPayer,
+  weeklyPayments,
+  loanPayment,
+}) => {
+  const cleanEmail = (studentEmail || '').toLowerCase().trim();
+  const form = await EnrollmentAgreement.find({ email: cleanEmail });
+  if (form.length > 0) {
+    form[0].constOfTution = constOfTution;
+    form[0].downPayment = downPayment;
+    form[0].thirdPartyPayer = thirdPartyPayer;
+    form[0].weeklyPayments = weeklyPayments;
+    form[0].loanPayment = loanPayment;
 
-      form[0].checkedAt = new Date();
-      form[0].checkedBy = adminId;
-      form[0].checkedByName = adminName;
-      form[0].checkedBySign = adminName;
-      form[0].status = 'ACCEPTED';
+    form[0].checkedAt = new Date();
+    form[0].checkedBy = adminId;
+    form[0].checkedByName = adminName;
+    form[0].checkedBySign = adminName;
+    form[0].status = 'ACCEPTED';
 
-      await Student.findOneAndUpdate(
-        { email: studentEmail },
-        {
-          $set: {
-            isStudent: true,
-          },
-        }
-      );
+    await Student.findOneAndUpdate(
+      { email: cleanEmail },
+      {
+        $set: {
+          isStudent: true,
+        },
+      }
+    );
 
-      await form[0].save();
-      return form[0];
-    } else return null;
+    await form[0].save();
+    return form[0];
   }
-);
-const rejectEnrollmentAgreement = catchAsyncErrors(async () => {});
+  return null;
+};
+
+const rejectEnrollmentAgreement = async () => {};
+
 module.exports = {
   createEnrollmentAgreement,
   getEnrollmentAgreementById,
