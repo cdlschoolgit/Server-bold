@@ -318,7 +318,7 @@ const createStudentWithDetails = async (name, email, password) => {
   const resetToken = studentCreated.getResetPasswordToken();
   await studentCreated.save();
 
-  const serverUrl = process.env.SERVER_URL || 'https://unitedcdlschool.vercel.app';
+  const serverUrl = process.env.SERVER_URL || process.env.BACKEND_END_URL_PROD || 'https://server-bold-nine.vercel.app';
   const verifyURL = `${serverUrl}/api/verifyStudent?token=${resetToken}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(cleanEmail)}`;
 
   await sendEmail({
