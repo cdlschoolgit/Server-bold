@@ -3,6 +3,10 @@ const {
   getChapterQuestionById,
   getAllChaptersDetails,
   getChaptersDetailsByID,
+  getAllQuestionsWithAnswers,
+  updateQuestionById,
+  createQuestion,
+  deleteQuestionById,
 } = require('../services/QuizService');
 const {
   getChaptersByStudentId,
@@ -97,6 +101,68 @@ exports.getChapterQuestion = catchAsyncErrors(async (req, res) => {
   res.status(200).json({
     success: true,
     questions,
+  });
+});
+
+exports.adminGetAllQuestions = catchAsyncErrors(async (req, res) => {
+  const { chapterId, search } = req.query;
+  const questions = await getAllQuestionsWithAnswers({ chapterId, search });
+  res.status(200).json({
+    success: true,
+    count: questions.length,
+    questions,
+  });
+});
+
+exports.adminUpdateQuestion = catchAsyncErrors(async (req, res) => {
+  const { id } = req.params;
+  const { questionText, chapterId, quesOptions, quesAnswer } = req.body;
+  const updated = await updateQuestionById(id, {
+    questionText,
+    chapterId,
+    quesOptions,
+    quesAnswer,
+  });
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Question not found' });
+  }
+  res.status(200).json({
+    success: true,
+    message: 'Question updated successfully',
+    question: updated,
+  });
+});
+
+exports.adminCreateQuestion = catchAsyncErrors(async (req, res) => {
+  const { questionText, chapterId, quesOptions, quesAnswer } = req.body;
+  if (!questionText || !chapterId || !quesOptions || !quesAnswer) {
+    return res.status(400).json({
+      success: false,
+      message: 'Question text, chapterId, options, and correct answer are required',
+    });
+  }
+  const created = await createQuestion({
+    questionText,
+    chapterId,
+    quesOptions,
+    quesAnswer,
+  });
+  res.status(201).json({
+    success: true,
+    message: 'Question created successfully',
+    question: created,
+  });
+});
+
+exports.adminDeleteQuestion = catchAsyncErrors(async (req, res) => {
+  const { id } = req.params;
+  const deleted = await deleteQuestionById(id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'Question not found' });
+  }
+  res.status(200).json({
+    success: true,
+    message: 'Question deleted successfully',
   });
 });
 

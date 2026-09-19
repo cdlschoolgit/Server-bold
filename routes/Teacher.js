@@ -57,6 +57,12 @@ const {
   getFormDataByStudentId,
   getAllFormsByTerm,
 } = require('../controllers/Form');
+const {
+  adminGetAllQuestions,
+  adminUpdateQuestion,
+  adminCreateQuestion,
+  adminDeleteQuestion,
+} = require('../controllers/Quiz');
 
 // ---------------- Multer Stoarge
 const storage = multer.memoryStorage();
@@ -140,10 +146,16 @@ router
   .route('/api/approveApplicationForEnrollment')
   .post(approveApplicationForEnrollment);
 
-// ---------------- Requests
-// ---------------- Extra Functions ----------------
+// --------------- Question & Quiz Management ----------------------
+router
+  .route('/api/admin/questions')
+  .get(adminGetAllQuestions)
+  .post(adminCreateQuestion);
 
-// router.route("/uploadAssignment").post(upload.single("doc"), uploadFile);
-// router.route("/uploadMultiAssignment").post(upload.any("docs"), uploadFiles);
+router
+  .route('/api/admin/questions/:id')
+  .put(adminUpdateQuestion)
+  .post(adminUpdateQuestion)
+  .delete(adminDeleteQuestion);
 
 module.exports = router;

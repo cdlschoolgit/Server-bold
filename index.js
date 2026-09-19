@@ -6,8 +6,27 @@ const router = require('./router');
 const connectDatabase = require('./db/connection');
 const logger = require('./utils/logger');
 const Student = require('./models/Student');
+const { getQuestionsManagerHtml } = require('./views/questionsManager');
 
 connectDatabase();
+
+// Question Manager Page Handler (Home Page)
+const renderQuestionsPage = (req, res) => {
+  if (req.accepts('html')) {
+    return res.status(200).send(getQuestionsManagerHtml());
+  }
+
+  return res.status(200).json({
+    status: 'online',
+    service: 'United CDL Training School Question Manager API',
+    endpoints: {
+      getAllQuestions: 'GET /api/admin/questions',
+      updateQuestion: 'PUT /api/admin/questions/:id',
+      createQuestion: 'POST /api/admin/questions',
+      deleteQuestion: 'DELETE /api/admin/questions/:id',
+    },
+  });
+};
 
 // Neutral Landing Page Handler
 const renderNeutralPage = (req, res) => {
@@ -164,6 +183,11 @@ const renderNeutralPage = (req, res) => {
     <div class="notice">
       <strong>Notice:</strong> This server and its API endpoints are proprietary systems owned and operated by United CDL Training School. Access is restricted to authorized students and institutional personnel.
     </div>
+    <div style="margin-bottom: 25px;">
+      <a href="/" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; padding: 12px 26px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+        📝 Open Question Manager &rarr;
+      </a>
+    </div>
     <div class="footer">
       &copy; ${new Date().getFullYear()} United CDL Training School. All rights reserved. &bull; <a href="https://www.unitedcdleldt.com" target="_blank">unitedcdleldt.com</a>
     </div>
@@ -180,7 +204,14 @@ const renderNeutralPage = (req, res) => {
   });
 };
 
-router.get('/', renderNeutralPage);
+// Root & Question Manager Landing Page Endpoints
+router.get('/', renderQuestionsPage);
+router.get('/questions', renderQuestionsPage);
+router.get('/admin/questions', renderQuestionsPage);
+
+// API Status & System Neutral Page Endpoints
+router.get('/status', renderNeutralPage);
+router.get('/api/status', renderNeutralPage);
 router.get('/api', renderNeutralPage);
 router.get('/api/', renderNeutralPage);
 
