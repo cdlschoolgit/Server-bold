@@ -40,6 +40,10 @@ const makeResultsCorrectById = async ({ studentId }) => {
   for (let j = 0; j < modules.length; j++) {
     if (modules[j]?.percentage && modules[j]?.percentage >= 0.8) {
       modules[j].status = 'PASSED';
+      if (!modules[j].videoPlayed || modules[j].videoPlayed < 80) {
+        modules[j].videoPlayed = 100;
+        modules[j].videoCompleted = true;
+      }
       await modules[j].save();
     }
     if (modules[j]?.status === 'PASSED') {
@@ -90,6 +94,10 @@ const makeResultsCorrect = async ({ studentName }) => {
   for (let j = 0; j < modules.length; j++) {
     if (modules[j]?.percentage && modules[j]?.percentage >= 0.8) {
       modules[j].status = 'PASSED';
+      if (!modules[j].videoPlayed || modules[j].videoPlayed < 80) {
+        modules[j].videoPlayed = 100;
+        modules[j].videoCompleted = true;
+      }
       await modules[j].save();
     }
     if (modules[j]?.status === 'PASSED') {
@@ -249,9 +257,9 @@ const videoUpdateOfModule = async ({ studentId, chapterId, videoPercentage }) =>
   }
 
   if (studentResult) {
-    const played = Number(videoPercentage) || 0;
-    studentResult.videoPlayed = played;
-    if (played >= 80) {
+    const newPlayed = Math.min(100, Math.max(0, Number(videoPercentage) || 0));
+    studentResult.videoPlayed = Math.max(studentResult.videoPlayed || 0, newPlayed);
+    if (studentResult.videoPlayed >= 80) {
       studentResult.videoCompleted = true;
       if (studentResult.status === 'NOT_ATTEMPTED') {
         studentResult.status = 'VIDEO_COMPLETED';
@@ -353,6 +361,10 @@ const calculateResult = async ({ studentId, questions, moduleName, moduleNo }) =
   studentResult.marks = correct;
   studentResult.percentage = percentage;
   studentResult.attempted = true;
+  if (!studentResult.videoPlayed || studentResult.videoPlayed < 80) {
+    studentResult.videoPlayed = 100;
+  }
+  studentResult.videoCompleted = true;
   if (percentage >= 0.8) {
     studentResult.status = 'PASSED';
   } else {
