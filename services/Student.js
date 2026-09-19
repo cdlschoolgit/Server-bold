@@ -41,7 +41,28 @@ const getChaptersByStudentId = async ({ studentId }) => {
       chapters = await StudentModuleResult.find({ studentId }).sort({ chapterNo: 1 });
     }
   }
-  return chapters;
+
+  // Calculate sequential unlock/lock state
+  let allPreviousPassed = true;
+  const enriched = chapters.map((ch, idx) => {
+    const item = ch.toObject ? ch.toObject() : { ...ch };
+    const isPassed = item.status === 'PASSED' || (Number(item.percentage) >= 0.8);
+
+    if (idx === 0) {
+      // Module 1 is always unlocked
+      item.isLocked = false;
+    } else {
+      // Module N is locked if any preceding module is not passed
+      item.isLocked = !allPreviousPassed;
+    }
+
+    if (!isPassed) {
+      allPreviousPassed = false;
+    }
+    return item;
+  });
+
+  return enriched;
 };
 
 const getChapterByStudentIdAndChapterId = async ({ studentId, chapterNo }) => {
@@ -54,7 +75,19 @@ const getChapterByStudentIdAndChapterId = async ({ studentId, chapterNo }) => {
       chapter = await StudentModuleResult.findOne({ studentId, chapterNo: modNo });
     }
   }
-  return chapter;
+
+  if (!chapter) return null;
+
+  const item = chapter.toObject ? chapter.toObject() : { ...chapter };
+  if (modNo === 1) {
+    item.isLocked = false;
+  } else {
+    // Check if previous module was passed
+    const prevModule = await StudentModuleResult.findOne({ studentId, chapterNo: modNo - 1 });
+    item.isLocked = !prevModule || (prevModule.status !== 'PASSED' && (Number(prevModule.percentage) || 0) < 0.8);
+  }
+
+  return item;
 };
 
 const makeChaptersData = async ({ studentId, studentName }) => {

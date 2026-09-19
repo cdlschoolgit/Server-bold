@@ -51,9 +51,22 @@ const makeResultsCorrectById = async ({ studentId }) => {
   if (newLessonCompleted === 0) {
     overAll.overAllPercentage = 0;
     overAll.lessonCompletedTotal = 0;
+    overAll.lastCompleted = 0;
   } else {
     overAll.overAllPercentage = Math.round((newOverAllPercentage / newLessonCompleted) * 100) / 100;
     overAll.lessonCompletedTotal = newLessonCompleted;
+
+    let highestConsecutivePassed = 0;
+    for (let i = 1; i <= 35; i++) {
+      const mod = modules.find((c) => Number(c.chapterNo) === i);
+      if (mod && (mod.status === 'PASSED' || (Number(mod.percentage) || 0) >= 0.8)) {
+        highestConsecutivePassed = i;
+      } else {
+        break;
+      }
+    }
+    overAll.lastCompleted = highestConsecutivePassed;
+
     if (newLessonCompleted >= 35) {
       const studentFound = await Student.findById(overAll.studentId);
       if (studentFound) {
@@ -88,9 +101,22 @@ const makeResultsCorrect = async ({ studentName }) => {
   if (newLessonCompleted === 0) {
     overAll.overAllPercentage = 0;
     overAll.lessonCompletedTotal = 0;
+    overAll.lastCompleted = 0;
   } else {
     overAll.overAllPercentage = Math.round((newOverAllPercentage / newLessonCompleted) * 100) / 100;
     overAll.lessonCompletedTotal = newLessonCompleted;
+
+    let highestConsecutivePassed = 0;
+    for (let i = 1; i <= 35; i++) {
+      const mod = modules.find((c) => Number(c.chapterNo) === i);
+      if (mod && (mod.status === 'PASSED' || (Number(mod.percentage) || 0) >= 0.8)) {
+        highestConsecutivePassed = i;
+      } else {
+        break;
+      }
+    }
+    overAll.lastCompleted = highestConsecutivePassed;
+
     if (newLessonCompleted >= 35) {
       const studentFound = await Student.findById(overAll.studentId);
       if (studentFound) {
@@ -185,6 +211,18 @@ const manageResultAndUpdate = async () => {
       overAll.overAllPercentage = newLessonCompleted > 0
         ? Math.round((newOverAllPercentage / newLessonCompleted) * 100) / 100
         : 0;
+
+      let highestConsecutivePassed = 0;
+      for (let k = 1; k <= 35; k++) {
+        const mod = modules.find((c) => Number(c.chapterNo) === k);
+        if (mod && (mod.status === 'PASSED' || (Number(mod.percentage) || 0) >= 0.8)) {
+          highestConsecutivePassed = k;
+        } else {
+          break;
+        }
+      }
+      overAll.lastCompleted = highestConsecutivePassed;
+
       await overAll.save();
     }
   }
@@ -244,6 +282,19 @@ const createResult = async ({ studentName, studentId }) => {
 
 const calculateResult = async ({ studentId, questions, moduleName, moduleNo }) => {
   const modNo = Number(moduleNo);
+
+  // Enforce sequential prerequisite: Previous module must be PASSED before attempting this quiz
+  if (modNo > 1) {
+    const prevModule = await StudentModuleResult.findOne({
+      studentId,
+      chapterNo: modNo - 1,
+    });
+    const prevPassed = prevModule && (prevModule.status === 'PASSED' || (Number(prevModule.percentage) || 0) >= 0.8);
+    if (!prevPassed) {
+      throw new ErrorHandler(`Module ${modNo} is locked. You must complete and pass Module ${modNo - 1} first.`, 400);
+    }
+  }
+
   const dbQuestions = await Question.find({ chapterId: modNo });
   let correct = 0;
   let wrong = 0;
@@ -336,7 +387,19 @@ const calculateResult = async ({ studentId, questions, moduleName, moduleNo }) =
   overAll.overAllPercentage = newLessonCompleted > 0
     ? Math.round((newOverAllPercentage / newLessonCompleted) * 100) / 100
     : 0;
-  overAll.lastCompleted = modNo;
+
+  // Calculate highest consecutive passed module (1..35)
+  let highestConsecutivePassed = 0;
+  for (let i = 1; i <= 35; i++) {
+    const mod = allChapters.find((c) => Number(c.chapterNo) === i);
+    const modPassed = mod && (mod.status === 'PASSED' || (Number(mod.percentage) || 0) >= 0.8);
+    if (modPassed) {
+      highestConsecutivePassed = i;
+    } else {
+      break;
+    }
+  }
+  overAll.lastCompleted = highestConsecutivePassed;
 
   if (newLessonCompleted >= 35) {
     const studentFound = await Student.findById(studentId);
